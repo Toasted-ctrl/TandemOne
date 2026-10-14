@@ -1,3 +1,4 @@
+import { ChatModeToggle, type ChatMode } from "./chat-mode-toggle"
 import { ToolSelector } from "./tool-selector"
 import { WebSearchToggle } from "./web-search-toggle"
 import { SamplingSelector } from "./sampling-selector"
@@ -6,7 +7,9 @@ import type { ModelParameters } from "../services/stream-agent"
 import type { ModelSamplingSupport } from "../services/get-model-sampling"
 
 type ChatToolbarProps = {
-    // When an agent is selected its own configuration applies, so the toolbar is replaced by a notice
+    // In agent mode the agent's own configuration applies, so the tools are replaced by a notice
+    mode: ChatMode
+    onModeChange: (mode: ChatMode) => void
     agentName?: string
     mcps: Mcp[]
     selectedMcps: string[]
@@ -25,6 +28,8 @@ type ChatToolbarProps = {
 }
 
 export function ChatToolbar({
+    mode,
+    onModeChange,
     agentName,
     mcps,
     selectedMcps,
@@ -44,14 +49,18 @@ export function ChatToolbar({
     // Fixed height so switching between model and agent never shifts the layout
     return (
         <div className="mx-auto mb-1.5 flex h-8 max-w-2xl items-center gap-1">
-            {agentName ? (
+            {mode === "agent" ? (
                 <div className="flex min-w-0 items-center gap-1.5 px-3 text-xs text-zinc-500">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-amber-400/60">
                         <circle cx="12" cy="12" r="10" />
                         <path d="M12 16v-4M12 8h.01" />
                     </svg>
                     <span className="truncate">
-                        Using <span className="font-medium text-zinc-300">{agentName}</span> settings
+                        {agentName ? (
+                            <>Using <span className="font-medium text-zinc-300">{agentName}</span> settings</>
+                        ) : (
+                            "Select an agent to use its model and tools"
+                        )}
                     </span>
                 </div>
             ) : (
@@ -71,15 +80,18 @@ export function ChatToolbar({
                         enabled={webSearch}
                         onToggle={onWebSearchToggle}
                     />
-                    <div className="ml-auto">
-                        <SamplingSelector
-                            parameters={parameters}
-                            onChange={onParametersChange}
-                            supported={samplingSupport}
-                        />
-                    </div>
                 </>
             )}
+            <div className="ml-auto flex shrink-0 items-center gap-1">
+                {mode === "model" && (
+                    <SamplingSelector
+                        parameters={parameters}
+                        onChange={onParametersChange}
+                        supported={samplingSupport}
+                    />
+                )}
+                <ChatModeToggle mode={mode} onChange={onModeChange} />
+            </div>
         </div>
     )
 }

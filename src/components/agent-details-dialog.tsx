@@ -1,0 +1,155 @@
+import { useEffect, useState, type ReactNode } from 'react'
+import { getPlaygroundAgent, type Agent } from '../services/get-playground-agent'
+import type { Mcp } from '../services/get-mcps'
+
+type AgentDetailsDialogProps = {
+    agentId: string
+    // Used to show MCP names instead of ids
+    mcps: Mcp[]
+    onClose: () => void
+}
+
+function SectionHeading({ children }: { children: ReactNode }) {
+    return <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">{children}</h3>
+}
+
+function Pill({ children }: { children: ReactNode }) {
+    return <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300">{children}</span>
+}
+
+export function AgentDetailsDialog({ agentId, mcps, onClose }: AgentDetailsDialogProps) {
+    const [agent, setAgent] = useState<Agent | null>(null)
+    const [error, setError] = useState<string | null>(null)
+
+    useEffect(() => {
+        let cancelled = false
+        getPlaygroundAgent(agentId)
+            .then(res => { if (!cancelled) setAgent(res) })
+            .catch(err => { if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load agent') })
+        return () => { cancelled = true }
+    }, [agentId])
+
+    useEffect(() => {
+        function handleKey(e: KeyboardEvent) {
+            if (e.key === 'Escape') onClose()
+        }
+        document.addEventListener('keydown', handleKey)
+        return () => document.removeEventListener('keydown', handleKey)
+    }, [onClose])
+
+    useEffect(() => {
+        const previousOverflow = document.body.style.overflow
+        document.body.style.overflow = 'hidden'
+        return () => { document.body.style.overflow = previousOverflow }
+    }, [])
+
+    const parameters = agent
+        ? ([
+            ['Temperature', agent.model.parameters.temperature],
+            ['Top P', agent.model.parameters.top_p],
+            ['Top K', agent.model.parameters.top_k],
+        ] as const)
+        : []
+
+    const enabledTools = agent
+        ? [
+            agent.tools.user_vs_files && 'User Files',
+            agent.tools.user_vs_memories && 'User Memories',
+            agent.tools.user_vs_skills && 'User Skill Discovery',
+            agent.tools.web_search && 'Web Search',
+        ].filter((t): t is string => !!t)
+        : []
+
+    const mcpNames = agent?.tools.mcp_ids.map(id => mcps.find(m => m.id === id)?.name ?? id) ?? []
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="agent-details-title"
+                className="relative flex max-h-[85svh] w-full max-w-2xl flex-col rounded-xl border border-zinc-800 bg-zinc-900 shadow-xl"
+            >
+                <div className="flex items-start justify-between gap-4 border-b border-zinc-800/60 px-6 py-4">
+                    <div className="min-w-0">
+                        <h2 id="agent-details-title" className="truncate text-lg font-semibold text-white">
+                            {agent?.name ?? (error ? 'Agent' : 'Loading…')}
+                        </h2>
+                        <p className="truncate text-xs text-zinc-600">{agentId}</p>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        aria-label="Close"
+                        className="flex shrink-0 cursor-pointer items-center justify-center rounded-lg p-1.5 text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-200"
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M18 6L6 18M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
+                    {error ? (
+                        <p className="text-sm text-red-400">{error}</p>
+                    ) : !agent ? (
+                        <p className="text-sm text-zinc-500">Loading agent…</p>
+                    ) : (
+                        <>
+                            <section className="space-y-2">
+                                <SectionHeading>Model</SectionHeading>
+                                <p className="text-sm text-zinc-300">
+                                    <span className="text-zinc-500">{agent.model.provider} / </span>
+                                    {agent.model.name}
+                                </p>
+                            </section>
+
+                            <section className="space-y-2">
+                                <SectionHeading>Sampling</SectionHeading>
+                                <div className="divide-y divide-zinc-800 rounded-lg border border-zinc-800">
+                                    {parameters.map(([label, value]) => (
+                                        <div key={label} className="flex items-center justify-between px-4 py-2">
+                                            <span className="text-sm text-zinc-300">{label}</span>
+                                            <span className={`text-sm tabular-nums ${value != null ? 'text-amber-300' : 'italic text-zinc-500'}`}>
+                                                {value ?? 'Default'}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+
+                            <section className="space-y-2">
+                                <SectionHeading>Tools</SectionHeading>
+                                {enabledTools.length === 0 && mcpNames.length === 0 ? (
+                                    <p className="text-sm text-zinc-500">This agent has no tools enabled.</p>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {enabledTools.length > 0 && (
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {enabledTools.map(tool => <Pill key={tool}>{tool}</Pill>)}
+                                            </div>
+                                        )}
+                                        {mcpNames.length > 0 && (
+                                            <div className="flex flex-wrap items-center gap-1.5">
+                                                <span className="text-xs text-zinc-500">MCP servers:</span>
+                                                {mcpNames.map(mcpName => <Pill key={mcpName}>{mcpName}</Pill>)}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </section>
+
+                            <section className="space-y-2">
+                                <SectionHeading>System prompt</SectionHeading>
+                                <p className="whitespace-pre-wrap rounded-lg border border-zinc-800 bg-zinc-950/50 px-4 py-3 text-sm leading-relaxed text-zinc-300">
+                                    {agent.system_prompt}
+                                </p>
+                            </section>
+                        </>
+                    )}
+                </div>
+            </div>
+        </div>
+    )
+}

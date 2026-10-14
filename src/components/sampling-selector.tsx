@@ -7,6 +7,8 @@ type SamplingSelectorProps = {
     onChange: (parameters: ModelParameters) => void
     // Null while unknown (no model selected, loading or failed), in which case every parameter is shown
     supported: ModelSamplingSupport | null
+    // Which side of the button the menu opens on
+    placement?: "up" | "down"
 }
 
 type ParameterSpec = {
@@ -26,7 +28,7 @@ const PARAMETERS: ParameterSpec[] = [
     { key: "top_k", label: "Top K", hint: "Sample from the K likeliest tokens", min: 1, max: 100, step: 1, placeholder: 40 },
 ]
 
-export function SamplingSelector({ parameters, onChange, supported }: SamplingSelectorProps) {
+export function SamplingSelector({ parameters, onChange, supported, placement = "up" }: SamplingSelectorProps) {
     const [open, setOpen] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
 
@@ -71,7 +73,7 @@ export function SamplingSelector({ parameters, onChange, supported }: SamplingSe
             </button>
 
             {open && (
-                <div className="absolute right-0 bottom-full z-50 mb-1.5 w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-zinc-700/50 bg-zinc-900 py-1.5 shadow-xl shadow-amber-950/20">
+                <div className={`absolute right-0 z-50 ${placement === "up" ? "bottom-full mb-1.5" : "top-full mt-1.5"} w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-zinc-700/50 bg-zinc-900 py-1.5 shadow-xl shadow-amber-950/20`}>
                     <div className="flex items-center justify-between px-3 py-1">
                         <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
                             Sampling

@@ -1,6 +1,9 @@
 import { useEffect, useRef } from "react"
+import { ChatAgentSelector } from "./chat-agent-selector"
+import type { ChatMode } from "./chat-mode-toggle"
 import { ChatModelSelector } from "./chat-model-selector"
 import { ChatToolbar } from "./chat-toolbar"
+import type { AgentSummary } from "../services/get-agents"
 import type { ProvidersOffering } from "../services/get-models"
 import type { ProviderConfiguration } from "../services/get-provider-configuration"
 import type { Mcp } from "../services/get-mcps"
@@ -12,12 +15,16 @@ type ChatInputProps = {
     onInputChange: (value: string) => void
     onSend: () => void
     loading: boolean
+    mode: ChatMode
+    onModeChange: (mode: ChatMode) => void
     offerings: ProvidersOffering | null
     providerConfigs: ProviderConfiguration[]
     provider: string
     model: string
     onModelSelect: (provider: string, model: string) => void
-    agentName?: string
+    agents: AgentSummary[] | null
+    agentId: string | null
+    onAgentSelect: (agentId: string) => void
     mcps: Mcp[]
     selectedMcps: string[]
     onMcpToggle: (mcpName: string) => void
@@ -39,12 +46,16 @@ export function ChatInput({
     onInputChange,
     onSend,
     loading,
+    mode,
+    onModeChange,
     offerings,
     providerConfigs,
     provider,
     model,
     onModelSelect,
-    agentName,
+    agents,
+    agentId,
+    onAgentSelect,
     mcps,
     selectedMcps,
     onMcpToggle,
@@ -74,7 +85,9 @@ export function ChatInput({
         el.style.height = Math.min(el.scrollHeight, 200) + "px"
     }
 
-    const canSend = input.trim() && !loading && !!model
+    const agentName = agents?.find((a) => a.id === agentId)?.name
+    const hasTarget = mode === "agent" ? !!agentId : !!model
+    const canSend = input.trim() && !loading && hasTarget
 
     function handleSend() {
         if (!canSend) return
@@ -95,6 +108,8 @@ export function ChatInput({
     return (
         <div className="shrink-0 border-t border-zinc-800/60 bg-zinc-950/80 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm">
             <ChatToolbar
+                mode={mode}
+                onModeChange={onModeChange}
                 agentName={agentName}
                 mcps={mcps}
                 selectedMcps={selectedMcps}
@@ -124,7 +139,13 @@ export function ChatInput({
                     />
                     <div className="flex items-center justify-between px-2 pb-2">
                         <div className="flex min-w-0 items-center gap-1">
-                            {offerings ? (
+                            {mode === "agent" ? (
+                                <ChatAgentSelector
+                                    agents={agents}
+                                    selectedAgentId={agentId}
+                                    onSelect={onAgentSelect}
+                                />
+                            ) : offerings ? (
                                 <ChatModelSelector
                                     offerings={offerings}
                                     providerConfigs={providerConfigs}

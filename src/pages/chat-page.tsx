@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom"
 import { AppHeader } from "../components/app-header"
 import { ChatInput } from "../components/chat-input"
 import { ChatWindow, type Message, type ContentBlock } from "../components/chat-window"
+import type { ChatMode } from "../components/chat-mode-toggle"
+import { getAgents, type AgentSummary } from "../services/get-agents"
 import { getProviderModels, type ProvidersOffering } from "../services/get-models"
 import { getProviderConfiguration, type ProviderConfiguration } from "../services/get-provider-configuration"
 import { getMcps, type Mcp } from "../services/get-mcps"
@@ -53,8 +55,12 @@ export function ChatPage() {
     const [messages, setMessages] = useState<Message[]>([])
     const [input, setInput] = useState("")
     const [loading, setLoading] = useState(false)
+    const [mode, setMode] = useState<ChatMode>("model")
     const [provider, setProvider] = useState("")
     const [model, setModel] = useState("")
+    // Null until the list is first fetched
+    const [agents, setAgents] = useState<AgentSummary[] | null>(null)
+    const [agentId, setAgentId] = useState<string | null>(null)
     const [mcps, setMcps] = useState<Mcp[]>([])
     const [selectedMcps, setSelectedMcps] = useState<string[]>([])
     const [userVsFiles, setUserVsFiles] = useState(false)
@@ -99,16 +105,37 @@ export function ChatPage() {
         return () => { cancelled = true }
     }, [provider, model])
 
+    function handleModeChange(next: ChatMode) {
+        setMode(next)
+        if (next !== "agent") return
+
+        // Refetch on every switch so newly created or shared agents show up
+        getAgents("All")
+            .then((res) => {
+                setAgents(res.agents)
+                // Drop the selection if the agent is no longer available
+                setAgentId((prev) => prev && res.agents.some((a) => a.id === prev) ? prev : null)
+            })
+            .catch((err) => {
+                console.error(err)
+                setAgents((prev) => prev ?? [])
+            })
+    }
+
+    const agentName = agents?.find((a) => a.id === agentId)?.name
+    const assistantName = mode === "agent" ? agentName : model || undefined
+
     async function handleSend() {
         const text = input.trim()
-        if (!text || loading || !provider || !model) return
+        if (!text || loading) return
+        if (mode === "agent" ? !agentId : !provider || !model) return
 
         const userMessage: Message = { role: "user", content: text }
         setMessages((prev) => [...prev, userMessage])
         setInput("")
         setLoading(true)
 
-        setMessages((prev) => [...prev, { role: "assistant", content: "", blocks: [{ type: "text", text: "" }], assistantName: model }])
+        setMessages((prev) => [...prev, { role: "assistant", content: "", blocks: [{ type: "text", text: "" }], assistantName }])
 
         const controller = new AbortController()
         abortRef.current = controller
@@ -130,18 +157,20 @@ export function ChatPage() {
                 .filter((id): id is string => !!id)
 
             await streamAgent(
-                {
-                    threadId,
-                    provider,
-                    model,
-                    prompt: text,
-                    parameters,
-                    mcpTools: mcpToolIds,
-                    userVsFiles,
-                    userVsMemories,
-                    userVsSkills,
-                    webSearch,
-                },
+                mode === "agent" && agentId
+                    ? { threadId, agentId, prompt: text }
+                    : {
+                        threadId,
+                        provider,
+                        model,
+                        prompt: text,
+                        parameters,
+                        mcpTools: mcpToolIds,
+                        userVsFiles,
+                        userVsMemories,
+                        userVsSkills,
+                        webSearch,
+                    },
                 {
                     onChunk: (chunk) => {
                         setMessages((prev) => {
@@ -217,7 +246,7 @@ export function ChatPage() {
                 messages={messages}
                 loading={loading}
                 greeting={user ? greeting(user.first_name) : undefined}
-                assistantName={model || undefined}
+                assistantName={assistantName}
             />
 
             <ChatInput
@@ -225,11 +254,16 @@ export function ChatPage() {
                 onInputChange={setInput}
                 onSend={handleSend}
                 loading={loading}
+                mode={mode}
+                onModeChange={handleModeChange}
                 offerings={offerings}
                 providerConfigs={providerConfigs}
                 provider={provider}
                 model={model}
                 onModelSelect={(p, m) => { setProvider(p); setModel(m) }}
+                agents={agents}
+                agentId={agentId}
+                onAgentSelect={setAgentId}
                 mcps={mcps}
                 selectedMcps={selectedMcps}
                 onMcpToggle={(name) =>

@@ -5,18 +5,54 @@ export type ModelParameters = {
     top_p: number | null
 }
 
+// An agent brings its own model and tools, so those are only sent when chatting with a model directly
 export type StreamRequest = {
-    agentId?: string
     threadId?: string | null
-    provider: string
-    model: string
     prompt: string
-    parameters?: ModelParameters
-    mcpTools?: string[]
-    userVsFiles?: boolean
-    userVsMemories?: boolean
-    userVsSkills?: boolean
-    webSearch?: boolean
+} & (
+    | { agentId: string }
+    | {
+        agentId?: undefined
+        provider: string
+        model: string
+        parameters?: ModelParameters
+        mcpTools?: string[]
+        userVsFiles?: boolean
+        userVsMemories?: boolean
+        userVsSkills?: boolean
+        webSearch?: boolean
+    }
+)
+
+function buildRequestBody(request: StreamRequest) {
+    if (request.agentId !== undefined) {
+        return {
+            agent_id: request.agentId,
+            thread_id: request.threadId ?? null,
+            prompt: request.prompt,
+        }
+    }
+
+    return {
+        thread_id: request.threadId ?? null,
+        prompt: request.prompt,
+        model: {
+            provider: request.provider,
+            name: request.model,
+            parameters: {
+                temperature: request.parameters?.temperature ?? null,
+                top_p: request.parameters?.top_p ?? null,
+                top_k: request.parameters?.top_k ?? null,
+            },
+        },
+        tools: {
+            mcp_ids: request.mcpTools ?? [],
+            web_search: request.webSearch ?? false,
+            user_vs_files: request.userVsFiles ?? false,
+            user_vs_memories: request.userVsMemories ?? false,
+            user_vs_skills: request.userVsSkills ?? false,
+        },
+    }
 }
 
 export type StreamCallbacks = {
@@ -34,7 +70,7 @@ export async function streamAgent(
     const applicationKey = import.meta.env.VITE_API_KEY
 
     const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/v1/agent/stream`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/v1/conversation/stream`,
         {
             method: "POST",
             headers: {
@@ -43,27 +79,7 @@ export async function streamAgent(
             },
             credentials: "include",
             signal,
-            body: JSON.stringify({
-                agent_id: request.agentId ?? null,
-                thread_id: request.threadId ?? null,
-                provider_settings: {
-                    name: request.provider,
-                    model: request.model,
-                },
-                parameters: {
-                    temperature: request.parameters?.temperature ?? null,
-                    top_k: request.parameters?.top_k ?? null,
-                    top_p: request.parameters?.top_p ?? null,
-                },
-                prompt: request.prompt,
-                tools: {
-                    user_vs_files: request.userVsFiles ?? false,
-                    user_vs_memories: request.userVsMemories ?? false,
-                    user_vs_skills: request.userVsSkills ?? false,
-                    web_search: request.webSearch ?? false,
-                    mcp_tools: request.mcpTools?.length ? request.mcpTools : null,
-                },
-            }),
+            body: JSON.stringify(buildRequestBody(request)),
         },
     )
 

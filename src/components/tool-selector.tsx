@@ -11,6 +11,8 @@ type ToolSelectorProps = {
     onUserVsMemoriesToggle: () => void
     userVsSkills: boolean
     onUserVsSkillsToggle: () => void
+    // Which side of the button the menu opens on
+    placement?: "up" | "down"
 }
 
 export function ToolSelector({
@@ -23,6 +25,7 @@ export function ToolSelector({
     onUserVsMemoriesToggle,
     userVsSkills,
     onUserVsSkillsToggle,
+    placement = "up",
 }: ToolSelectorProps) {
     const [open, setOpen] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -68,7 +71,7 @@ export function ToolSelector({
             </button>
 
             {open && (
-                <div className="absolute bottom-full left-0 z-50 mb-1.5 max-h-72 min-w-56 overflow-y-auto rounded-xl border border-zinc-700/50 bg-zinc-900 py-1.5 shadow-xl shadow-amber-950/20">
+                <div className={`absolute left-0 z-50 ${placement === "up" ? "bottom-full mb-1.5" : "top-full mt-1.5"} max-h-72 min-w-56 overflow-y-auto rounded-xl border border-zinc-700/50 bg-zinc-900 py-1.5 shadow-xl shadow-amber-950/20`}>
                     <div className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
                         Vector Search
                     </div>

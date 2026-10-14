@@ -8,6 +8,8 @@ type ChatModelSelectorProps = {
     selectedProvider: string
     selectedModel: string
     onSelect: (provider: string, model: string) => void
+    // Which side of the button the menu opens on
+    placement?: "up" | "down"
 }
 
 export function ChatModelSelector({
@@ -16,6 +18,7 @@ export function ChatModelSelector({
     selectedProvider,
     selectedModel,
     onSelect,
+    placement = "up",
 }: ChatModelSelectorProps) {
     const [open, setOpen] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -60,7 +63,7 @@ export function ChatModelSelector({
                 {hasSelection ? (
                     <span className="min-w-0 truncate">{selectedModel}</span>
                 ) : (
-                    <span className="min-w-0 truncate">Model / agent</span>
+                    <span className="min-w-0 truncate">Select a model</span>
                 )}
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="ml-0.5 shrink-0 opacity-40">
                     <path d="M6 9l6 6 6-6" />
@@ -68,7 +71,7 @@ export function ChatModelSelector({
             </button>
 
             {open && (
-                <div className="absolute bottom-full left-0 z-50 mb-1.5 max-h-72 min-w-56 overflow-y-auto rounded-xl border border-zinc-700/50 bg-zinc-900 py-1.5 shadow-xl shadow-amber-950/20">
+                <div className={`absolute left-0 z-50 ${placement === "up" ? "bottom-full mb-1.5" : "top-full mt-1.5"} max-h-72 min-w-56 overflow-y-auto rounded-xl border border-zinc-700/50 bg-zinc-900 py-1.5 shadow-xl shadow-amber-950/20`}>
                     {allProviderNames.map((providerName) => {
                         const models = offerings.providers[providerName]?.chat_completion ?? []
                         const config = providerConfigs.find((p) => p.name === providerName)
