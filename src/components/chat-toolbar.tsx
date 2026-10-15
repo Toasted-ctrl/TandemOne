@@ -48,16 +48,16 @@ export function ChatToolbar({
 }: ChatToolbarProps) {
     // Fixed height so switching between model and agent never shifts the layout
     return (
-        <div className="mx-auto mb-1.5 flex h-8 max-w-2xl items-center gap-1">
+        <div className="mb-2.5 flex h-9 items-center gap-1">
             {mode === "agent" ? (
-                <div className="flex min-w-0 items-center gap-1.5 px-3 text-xs text-zinc-500">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-amber-400/60">
+                <div className="flex min-w-0 items-center gap-2 px-2 text-xs text-ui-400 sm:text-sm">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-brand-500">
                         <circle cx="12" cy="12" r="10" />
                         <path d="M12 16v-4M12 8h.01" />
                     </svg>
                     <span className="truncate">
                         {agentName ? (
-                            <>Using <span className="font-medium text-zinc-300">{agentName}</span> settings</>
+                            <>Using <span className="font-semibold text-ui-100">{agentName}</span> settings</>
                         ) : (
                             "Select an agent to use its model and tools"
                         )}

@@ -6,7 +6,7 @@ export function GoogleLoginButton({ onLogin }: GoogleLoginButtonProps) {
     return (
         <button
             onClick={onLogin}
-            className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl bg-white px-4 py-3 text-sm font-medium text-zinc-900 shadow-sm transition-all hover:bg-zinc-100 active:scale-[0.98]"
+            className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl bg-ui-50 px-4 py-3 text-sm font-medium text-ui-900 shadow-sm transition-all hover:bg-ui-100 active:scale-[0.98]"
         >
             <GoogleIcon />
             Continue with Google

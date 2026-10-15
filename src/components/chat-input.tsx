@@ -106,28 +106,28 @@ export function ChatInput({
     }
 
     return (
-        <div className="shrink-0 border-t border-zinc-800/60 bg-zinc-950/80 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm">
-            <ChatToolbar
-                mode={mode}
-                onModeChange={onModeChange}
-                agentName={agentName}
-                mcps={mcps}
-                selectedMcps={selectedMcps}
-                onMcpToggle={onMcpToggle}
-                userVsFiles={userVsFiles}
-                onUserVsFilesToggle={onUserVsFilesToggle}
-                userVsMemories={userVsMemories}
-                onUserVsMemoriesToggle={onUserVsMemoriesToggle}
-                userVsSkills={userVsSkills}
-                onUserVsSkillsToggle={onUserVsSkillsToggle}
-                webSearch={webSearch}
-                onWebSearchToggle={onWebSearchToggle}
-                parameters={parameters}
-                onParametersChange={onParametersChange}
-                samplingSupport={samplingSupport}
-            />
-            <div className="mx-auto max-w-2xl">
-                <div className="rounded-2xl border border-zinc-700/50 bg-zinc-900 shadow-lg shadow-amber-950/10 transition-colors focus-within:border-amber-500/40 focus-within:shadow-amber-500/5">
+        <div className="shrink-0 px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4">
+            <div className="mx-auto max-w-2xl rounded-2xl border border-ui-700/60 bg-ui-900 p-2.5 shadow-lg shadow-black/5 dark:shadow-black/40">
+                <ChatToolbar
+                    mode={mode}
+                    onModeChange={onModeChange}
+                    agentName={agentName}
+                    mcps={mcps}
+                    selectedMcps={selectedMcps}
+                    onMcpToggle={onMcpToggle}
+                    userVsFiles={userVsFiles}
+                    onUserVsFilesToggle={onUserVsFilesToggle}
+                    userVsMemories={userVsMemories}
+                    onUserVsMemoriesToggle={onUserVsMemoriesToggle}
+                    userVsSkills={userVsSkills}
+                    onUserVsSkillsToggle={onUserVsSkillsToggle}
+                    webSearch={webSearch}
+                    onWebSearchToggle={onWebSearchToggle}
+                    parameters={parameters}
+                    onParametersChange={onParametersChange}
+                    samplingSupport={samplingSupport}
+                />
+                <div className="rounded-xl border border-transparent bg-ui-800 transition-colors focus-within:border-brand-500/50">
                     <textarea
                         ref={textareaRef}
                         value={input}
@@ -135,9 +135,9 @@ export function ChatInput({
                         onKeyDown={handleKeyDown}
                         placeholder="Send a message..."
                         rows={1}
-                        className="w-full resize-none bg-transparent px-4 pt-3 pb-2 text-base text-zinc-100 placeholder-zinc-500 outline-none sm:text-sm"
+                        className="w-full resize-none bg-transparent px-4 pt-3.5 pb-2 text-base text-ui-100 placeholder-ui-500 outline-none sm:text-sm"
                     />
-                    <div className="flex items-center justify-between px-2 pb-2">
+                    <div className="flex items-center justify-between px-2 pb-2.5">
                         <div className="flex min-w-0 items-center gap-1">
                             {mode === "agent" ? (
                                 <ChatAgentSelector
@@ -154,8 +154,8 @@ export function ChatInput({
                                     onSelect={onModelSelect}
                                 />
                             ) : (
-                                <div className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-zinc-500">
-                                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500/60" />
+                                <div className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-ui-500">
+                                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-500/60" />
                                     Loading models...
                                 </div>
                             )}
@@ -163,11 +163,11 @@ export function ChatInput({
                         <button
                             onClick={handleSend}
                             disabled={!canSend}
-                            className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-amber-600 text-white transition-all hover:bg-amber-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
+                            className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-flame text-ui-950 shadow-md shadow-brand-500/20 transition-all hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
                         >
                             <svg
-                                width="16"
-                                height="16"
+                                width="18"
+                                height="18"
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="currentColor"

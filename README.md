@@ -1,4 +1,4 @@
-# AIFE
+# Tandem One
 
 A web-based AI chat frontend that connects to AIA (https://github.com/Toasted-ctrl/ai_api) API. Supports multiple AI providers and models, MCP tool calling, web search, and a personal vector store for files and memories.
 
@@ -9,6 +9,7 @@ A web-based AI chat frontend that connects to AIA (https://github.com/Toasted-ct
 - **Web search** — opt-in toggle that lets the agent search the internet; off by default and clearly highlighted when enabled.
 - **Vector store** — upload documents (PDF, DOCX, TXT, MD, CSV) or save text memories to a per-user vector store for retrieval-augmented generation.
 - **Skills** — Add skills for your models/agents to use. Skills descriptions are stored in and discoverable through vector search.
+- **Agents** — configure your own agents in the Playground: give each one a name, a system prompt, a model with sampling settings, and its tools (MCP servers, vector search, web search). Switch the chat between a model and an agent; when chatting with an agent, its own model and tools are used.
 - **Google login** — authentication via Google OAuth.
 - **Settings** — manage provider API keys and model preferences.
 
@@ -68,7 +69,7 @@ A Kubernetes deployment is available under `k8s/`.
 src/
 ├── components/      UI components (header, chat input, selectors, file upload)
 ├── features/auth/   Google OAuth login
-├── pages/           Route pages (chat, login, settings, documents)
+├── pages/           Route pages (chat, login, settings, documents, playground)
 └── services/        API clients (streaming, vector store, providers, documents)
 ```
 

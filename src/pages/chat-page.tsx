@@ -230,7 +230,7 @@ export function ChatPage() {
     }
 
     return (
-        <div className="flex h-svh flex-col bg-zinc-950 bg-[image:linear-gradient(rgba(255,255,255,.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.015)_1px,transparent_1px)] bg-[size:48px_48px] bg-[position:center]">
+        <div className="flex h-svh flex-col bg-ui-950 bg-grid">
             <AppHeader
                 showNewChat={messages.length > 0}
                 onNewChat={() => {
@@ -246,6 +246,7 @@ export function ChatPage() {
                 messages={messages}
                 loading={loading}
                 greeting={user ? greeting(user.first_name) : undefined}
+                greetingName={user?.first_name}
                 assistantName={assistantName}
             />
 

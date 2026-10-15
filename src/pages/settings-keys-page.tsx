@@ -46,14 +46,14 @@ export function SettingsKeysPage() {
     const providersRequiringKeys = providers.filter((p) => p.requires_api_key)
 
     return (
-        <div className="flex min-h-svh flex-col bg-zinc-950 bg-[image:linear-gradient(rgba(255,255,255,.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.015)_1px,transparent_1px)] bg-[size:48px_48px] bg-[position:center]">
+        <div className="flex min-h-svh flex-col bg-ui-950 bg-grid">
             <AppHeader />
             <div className="flex-1 px-4 py-10">
             <div className="mx-auto max-w-xl">
-                <h1 className="text-2xl font-bold tracking-tight text-white">
+                <h1 className="text-2xl font-bold tracking-tight text-ui-50">
                     API Keys
                 </h1>
-                <p className="mt-2 text-sm text-zinc-400">
+                <p className="mt-2 text-sm text-ui-400">
                     Configure API keys for your providers.
                 </p>
 
@@ -70,9 +70,9 @@ export function SettingsKeysPage() {
                 )}
 
                 {loading ? (
-                    <div className="mt-8 text-sm text-zinc-500">Loading providers...</div>
+                    <div className="mt-8 text-sm text-ui-500">Loading providers...</div>
                 ) : providersRequiringKeys.length === 0 ? (
-                    <div className="mt-8 text-sm text-zinc-500">
+                    <div className="mt-8 text-sm text-ui-500">
                         No providers require API key configuration.
                     </div>
                 ) : (
@@ -80,10 +80,10 @@ export function SettingsKeysPage() {
                         {providersRequiringKeys.map((provider) => (
                             <div
                                 key={provider.name}
-                                className="rounded-xl border border-zinc-800 bg-zinc-900 p-5"
+                                className="rounded-xl border border-ui-800 bg-ui-900 p-5"
                             >
                                 <div className="flex items-center justify-between">
-                                    <span className="text-sm font-medium text-white">
+                                    <span className="text-sm font-medium text-ui-50">
                                         {provider.name}
                                     </span>
                                     {provider.api_key_configured ? (
@@ -91,7 +91,7 @@ export function SettingsKeysPage() {
                                             Configured
                                         </span>
                                     ) : (
-                                        <span className="rounded-full bg-zinc-800 px-2.5 py-0.5 text-xs font-medium text-zinc-400">
+                                        <span className="rounded-full bg-ui-800 px-2.5 py-0.5 text-xs font-medium text-ui-400">
                                             Not configured
                                         </span>
                                     )}
@@ -108,12 +108,12 @@ export function SettingsKeysPage() {
                                             }))
                                         }
                                         placeholder={provider.api_key_configured ? "Replace existing key..." : "Enter API key..."}
-                                        className="flex-1 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600"
+                                        className="flex-1 rounded-lg border border-ui-700 bg-ui-800 px-3 py-2 text-sm text-ui-100 placeholder-ui-500 outline-none transition focus:border-ui-600 focus:ring-1 focus:ring-ui-600"
                                     />
                                     <button
                                         onClick={() => handleSave(provider.name)}
                                         disabled={!keyInputs[provider.name]?.trim() || saving === provider.name}
-                                        className="shrink-0 cursor-pointer rounded-lg bg-white px-4 py-2 text-sm font-medium text-zinc-900 transition-all hover:bg-zinc-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
+                                        className="shrink-0 cursor-pointer rounded-lg bg-ui-50 px-4 py-2 text-sm font-medium text-ui-900 transition-all hover:bg-ui-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
                                     >
                                         {saving === provider.name ? "Saving..." : "Save"}
                                     </button>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { getRoot } from "../services/get-root"
+import { Wordmark } from "./logo"
 
 type NavDrawerProps = {
     open: boolean
@@ -81,13 +82,13 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
             />
 
             <nav
-                className={`fixed top-0 left-0 z-50 flex h-full w-64 flex-col bg-zinc-900 shadow-xl transition-transform duration-200 ease-out ${open ? "translate-x-0" : "-translate-x-full"}`}
+                className={`fixed top-0 left-0 z-50 flex h-full w-64 flex-col border-r border-ui-700/60 bg-ui-900 shadow-xl transition-transform duration-200 ease-out ${open ? "translate-x-0" : "-translate-x-full"}`}
             >
-                <div className="flex items-center justify-between border-b border-zinc-800/60 px-4 py-3">
-                    <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-sm font-bold text-transparent">AIFE</span>
+                <div className="flex items-center justify-between border-b border-ui-700/60 px-4 py-3">
+                    <Wordmark className="text-xl" />
                     <button
                         onClick={onClose}
-                        className="flex cursor-pointer items-center justify-center rounded-lg p-1.5 text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-200"
+                        className="flex cursor-pointer items-center justify-center rounded-lg p-1.5 text-ui-400 transition hover:bg-ui-800 hover:text-ui-200"
                     >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M18 6L6 18M6 6l12 12" />
@@ -105,8 +106,8 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
                                 onClick={onClose}
                                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                                     active
-                                        ? "bg-amber-500/10 text-amber-300"
-                                        : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200"
+                                        ? "bg-brand-500/10 text-brand-400 shadow-[inset_3px_0_0_var(--color-brand-500)]"
+                                        : "text-ui-400 hover:bg-ui-800/60 hover:text-ui-200"
                                 }`}
                             >
                                 {item.icon}
@@ -116,9 +117,9 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
                     })}
                 </div>
 
-                <div className="border-t border-zinc-800/60 px-4 py-3 space-y-0.5">
-                    <p className="text-xs text-zinc-500">App version: {__APP_VERSION__}</p>
-                    {apiVersion && <p className="text-xs text-zinc-500">API version: {apiVersion}</p>}
+                <div className="border-t border-ui-700/60 px-4 py-3 space-y-0.5">
+                    <p className="text-xs text-ui-500">App version: {__APP_VERSION__}</p>
+                    {apiVersion && <p className="text-xs text-ui-500">API version: {apiVersion}</p>}
                 </div>
             </nav>
         </>

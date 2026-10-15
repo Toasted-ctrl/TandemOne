@@ -7,7 +7,7 @@ type SkillFormProps = {
     onSave: (skill: SkillPayload) => Promise<boolean>
 }
 
-const inputClassName = 'mt-1.5 w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500'
+const inputClassName = 'mt-1.5 w-full rounded-lg border border-ui-700 bg-ui-800 px-3 py-2 text-sm text-ui-50 placeholder-ui-500 outline-none focus:border-ui-500 focus:ring-1 focus:ring-ui-500'
 
 // Returns the parsed schema, or an error message. Empty input yields an empty schema.
 function parseParametersSchema(raw: string): { schema: Record<string, unknown> } | { error: string } {
@@ -88,7 +88,7 @@ export function SkillForm({ onSave }: SkillFormProps) {
     return (
         <div className="space-y-4">
             <div>
-                <label htmlFor="skill-name" className="block text-sm font-medium text-zinc-300">
+                <label htmlFor="skill-name" className="block text-sm font-medium text-ui-300">
                     Name
                 </label>
                 <input
@@ -102,10 +102,10 @@ export function SkillForm({ onSave }: SkillFormProps) {
             </div>
             <div>
                 <div className="flex items-baseline justify-between">
-                    <label htmlFor="skill-description" className="block text-sm font-medium text-zinc-300">
+                    <label htmlFor="skill-description" className="block text-sm font-medium text-ui-300">
                         Description
                     </label>
-                    <span className={`text-xs ${descriptionTooLong ? 'text-red-400' : 'text-zinc-500'}`}>
+                    <span className={`text-xs ${descriptionTooLong ? 'text-red-400' : 'text-ui-500'}`}>
                         {description.length}/{SKILL_DESCRIPTION_MAX_LENGTH}
                     </span>
                 </div>
@@ -119,7 +119,7 @@ export function SkillForm({ onSave }: SkillFormProps) {
                 />
             </div>
             <div>
-                <label htmlFor="skill-text" className="block text-sm font-medium text-zinc-300">
+                <label htmlFor="skill-text" className="block text-sm font-medium text-ui-300">
                     Instructions
                 </label>
                 <textarea
@@ -132,8 +132,8 @@ export function SkillForm({ onSave }: SkillFormProps) {
                 />
             </div>
             <div>
-                <label htmlFor="skill-parameters" className="block text-sm font-medium text-zinc-300">
-                    Parameters schema <span className="font-normal text-zinc-500">(optional)</span>
+                <label htmlFor="skill-parameters" className="block text-sm font-medium text-ui-300">
+                    Parameters schema <span className="font-normal text-ui-500">(optional)</span>
                 </label>
                 <textarea
                     id="skill-parameters"
@@ -151,7 +151,7 @@ export function SkillForm({ onSave }: SkillFormProps) {
             <button
                 onClick={handleSave}
                 disabled={!canSave || saving}
-                className="flex cursor-pointer items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-zinc-700 hover:bg-zinc-800/60 hover:text-white disabled:pointer-events-none disabled:opacity-50"
+                className="flex cursor-pointer items-center gap-2 rounded-xl border border-ui-800 bg-ui-900 px-4 py-2.5 text-sm font-medium text-ui-300 transition hover:border-ui-700 hover:bg-ui-800/60 hover:text-ui-50 disabled:pointer-events-none disabled:opacity-50"
             >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />

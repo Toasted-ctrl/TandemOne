@@ -17,7 +17,7 @@ const WIDE_SCREEN_QUERY = '(min-width: 640px)'
 
 function AgentIcon() {
     return (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-zinc-500">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-ui-500">
             <rect x="3" y="8" width="18" height="12" rx="2" />
             <path d="M12 8V4" />
             <circle cx="12" cy="3" r="1" />
@@ -86,34 +86,34 @@ export function PlaygroundPage() {
     }
 
     return (
-        <div className="flex min-h-svh flex-col bg-zinc-950 bg-[image:linear-gradient(rgba(255,255,255,.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.015)_1px,transparent_1px)] bg-[size:48px_48px] bg-[position:center]">
+        <div className="flex min-h-svh flex-col bg-ui-950 bg-grid">
             <AppHeader />
             <div className="flex-1 px-4 py-10">
                 <div className="mx-auto max-w-xl">
-                    <h1 className="text-2xl font-bold tracking-tight text-white">Playground</h1>
-                    <p className="mt-2 text-sm text-zinc-400">
+                    <h1 className="text-2xl font-bold tracking-tight text-ui-50">Playground</h1>
+                    <p className="mt-2 text-sm text-ui-400">
                         Create and manage your own agents, each with its own model, tools and instructions.
                     </p>
 
-                    <div className="mt-8 rounded-xl border border-zinc-800 bg-zinc-900">
+                    <div className="mt-8 rounded-xl border border-ui-800 bg-ui-900">
                         <button
                             onClick={() => setAddPanelOpen(open => !open)}
                             aria-expanded={addPanelOpen}
                             aria-controls="add-panel"
-                            className="flex w-full cursor-pointer items-center justify-between gap-3 px-6 py-4 text-sm font-medium text-zinc-300 transition hover:text-white"
+                            className="flex w-full cursor-pointer items-center justify-between gap-3 px-6 py-4 text-sm font-medium text-ui-300 transition hover:text-ui-50"
                         >
                             <span className="flex items-center gap-2">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-500">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-ui-500">
                                     <path d="M12 5v14M5 12h14" />
                                 </svg>
                                 Create an agent
                             </span>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 text-zinc-500 transition-transform duration-200 ${addPanelOpen ? 'rotate-180' : ''}`}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 text-ui-500 transition-transform duration-200 ${addPanelOpen ? 'rotate-180' : ''}`}>
                                 <polyline points="6 9 12 15 18 9" />
                             </svg>
                         </button>
                         {/* Hidden rather than unmounted so in-progress input survives collapsing */}
-                        <div id="add-panel" className={`border-t border-zinc-800/60 px-6 pb-6 pt-4 ${addPanelOpen ? '' : 'hidden'}`}>
+                        <div id="add-panel" className={`border-t border-ui-800/60 px-6 pb-6 pt-4 ${addPanelOpen ? '' : 'hidden'}`}>
                             <AgentForm
                                 offerings={offerings}
                                 providerConfigs={providerConfigs}
@@ -125,16 +125,16 @@ export function PlaygroundPage() {
                     </div>
 
                     <div className="mt-6 space-y-2">
-                        <h2 className="text-sm font-medium text-zinc-400">Your agents</h2>
+                        <h2 className="text-sm font-medium text-ui-400">Your agents</h2>
                         {agentsLoading ? (
-                            <p className="text-xs text-zinc-500">Loading…</p>
+                            <p className="text-xs text-ui-500">Loading…</p>
                         ) : agents.length === 0 ? (
-                            <p className="text-xs text-zinc-500">You haven't created any agents yet.</p>
+                            <p className="text-xs text-ui-500">You haven't created any agents yet.</p>
                         ) : (
                             agents.map(agent => (
                                 <div
                                     key={agent.id}
-                                    className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-3"
+                                    className="flex items-center gap-3 rounded-lg border border-ui-800 bg-ui-900 px-4 py-3"
                                 >
                                     <button
                                         onClick={() => setSelectedAgentId(agent.id)}
@@ -142,15 +142,15 @@ export function PlaygroundPage() {
                                     >
                                         <AgentIcon />
                                         <div className="min-w-0 flex-1">
-                                            <p className="truncate text-sm text-white group-hover:text-amber-300">{agent.name}</p>
-                                            <p className="truncate text-xs text-zinc-600">{agent.id.slice(0, 18)}</p>
+                                            <p className="truncate text-sm text-ui-50 group-hover:text-brand-300">{agent.name}</p>
+                                            <p className="truncate text-xs text-ui-600">{agent.id.slice(0, 18)}</p>
                                         </div>
                                     </button>
                                     <button
                                         onClick={() => handleDelete(agent.id)}
                                         disabled={deletingIds.has(agent.id)}
                                         aria-label={`Delete ${agent.name}`}
-                                        className="shrink-0 cursor-pointer rounded-md p-1.5 text-zinc-500 transition hover:bg-zinc-800 hover:text-red-400 disabled:pointer-events-none disabled:opacity-50"
+                                        className="shrink-0 cursor-pointer rounded-md p-1.5 text-ui-500 transition hover:bg-ui-800 hover:text-red-400 disabled:pointer-events-none disabled:opacity-50"
                                     >
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                             <polyline points="3 6 5 6 21 6" />

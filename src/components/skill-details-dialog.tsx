@@ -35,7 +35,7 @@ function getSchemaProperties(schema: Record<string, unknown>): SchemaProperty[] 
 }
 
 function SectionHeading({ children }: { children: ReactNode }) {
-    return <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">{children}</h3>
+    return <h3 className="text-xs font-medium uppercase tracking-wide text-ui-500">{children}</h3>
 }
 
 export function SkillDetailsDialog({ skillId, scope, onClose }: SkillDetailsDialogProps) {
@@ -118,19 +118,19 @@ export function SkillDetailsDialog({ skillId, scope, onClose }: SkillDetailsDial
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="skill-details-title"
-                className="relative flex max-h-[85svh] w-full max-w-2xl flex-col rounded-xl border border-zinc-800 bg-zinc-900 shadow-xl"
+                className="relative flex max-h-[85svh] w-full max-w-2xl flex-col rounded-xl border border-ui-800 bg-ui-900 shadow-xl"
             >
-                <div className="flex items-start justify-between gap-4 border-b border-zinc-800/60 px-6 py-4">
+                <div className="flex items-start justify-between gap-4 border-b border-ui-800/60 px-6 py-4">
                     <div className="min-w-0">
-                        <h2 id="skill-details-title" className="truncate text-lg font-semibold text-white">
+                        <h2 id="skill-details-title" className="truncate text-lg font-semibold text-ui-50">
                             {skill?.name ?? (error ? 'Skill' : 'Loading…')}
                         </h2>
-                        <p className="truncate text-xs text-zinc-600">{skillId}</p>
+                        <p className="truncate text-xs text-ui-600">{skillId}</p>
                     </div>
                     <button
                         onClick={requestClose}
                         aria-label="Close"
-                        className="flex shrink-0 cursor-pointer items-center justify-center rounded-lg p-1.5 text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-200"
+                        className="flex shrink-0 cursor-pointer items-center justify-center rounded-lg p-1.5 text-ui-400 transition hover:bg-ui-800 hover:text-ui-200"
                     >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M18 6L6 18M6 6l12 12" />
@@ -142,12 +142,12 @@ export function SkillDetailsDialog({ skillId, scope, onClose }: SkillDetailsDial
                     {error ? (
                         <p className="text-sm text-red-400">{error}</p>
                     ) : !skill ? (
-                        <p className="text-sm text-zinc-500">Loading skill…</p>
+                        <p className="text-sm text-ui-500">Loading skill…</p>
                     ) : (
                         <>
                             <section className="space-y-2">
                                 <SectionHeading>Description</SectionHeading>
-                                <p className="whitespace-pre-wrap text-sm text-zinc-300">{skill.description}</p>
+                                <p className="whitespace-pre-wrap text-sm text-ui-300">{skill.description}</p>
                             </section>
 
                             <section className="space-y-2">
@@ -156,7 +156,7 @@ export function SkillDetailsDialog({ skillId, scope, onClose }: SkillDetailsDial
                                     {!editing && (
                                         <button
                                             onClick={startEditing}
-                                            className="flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-200"
+                                            className="flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-ui-400 transition hover:bg-ui-800 hover:text-ui-200"
                                         >
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                                 <path d="M12 20h9" />
@@ -177,28 +177,28 @@ export function SkillDetailsDialog({ skillId, scope, onClose }: SkillDetailsDial
                                             aria-label="Instructions"
                                             rows={12}
                                             autoFocus
-                                            className="w-full resize-y rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500"
+                                            className="w-full resize-y rounded-lg border border-ui-700 bg-ui-800 px-3 py-2 text-sm text-ui-50 placeholder-ui-500 outline-none focus:border-ui-500 focus:ring-1 focus:ring-ui-500"
                                         />
                                         {saveError && <p className="text-xs text-red-400">{saveError}</p>}
                                         <div className="flex items-center justify-end gap-2">
                                             <button
                                                 onClick={cancelEditing}
                                                 disabled={saving}
-                                                className="cursor-pointer rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-200 disabled:pointer-events-none disabled:opacity-50"
+                                                className="cursor-pointer rounded-lg px-3 py-2 text-sm font-medium text-ui-400 transition hover:bg-ui-800 hover:text-ui-200 disabled:pointer-events-none disabled:opacity-50"
                                             >
                                                 Cancel
                                             </button>
                                             <button
                                                 onClick={handleSave}
                                                 disabled={!canSave}
-                                                className="cursor-pointer rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm font-medium text-white transition hover:border-zinc-600 hover:bg-zinc-700 disabled:pointer-events-none disabled:opacity-50"
+                                                className="cursor-pointer rounded-lg border border-ui-700 bg-ui-800 px-3 py-2 text-sm font-medium text-ui-50 transition hover:border-ui-600 hover:bg-ui-700 disabled:pointer-events-none disabled:opacity-50"
                                             >
                                                 {saving ? 'Saving…' : 'Save'}
                                             </button>
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="prose prose-invert prose-sm max-w-none rounded-lg border border-zinc-800 bg-zinc-950/50 px-4 py-3 leading-relaxed text-zinc-300">
+                                    <div className="prose dark:prose-invert prose-sm max-w-none rounded-lg border border-ui-800 bg-ui-950/50 px-4 py-3 leading-relaxed text-ui-300">
                                         <Markdown remarkPlugins={[remarkGfm]}>{skill.instructions}</Markdown>
                                     </div>
                                 )}
@@ -207,32 +207,32 @@ export function SkillDetailsDialog({ skillId, scope, onClose }: SkillDetailsDial
                             <section className="space-y-2">
                                 <SectionHeading>Parameters</SectionHeading>
                                 {!hasSchema ? (
-                                    <p className="text-sm text-zinc-500">This skill takes no parameters.</p>
+                                    <p className="text-sm text-ui-500">This skill takes no parameters.</p>
                                 ) : (
                                     <>
                                         {schemaProperties && (
-                                            <div className="divide-y divide-zinc-800 rounded-lg border border-zinc-800">
+                                            <div className="divide-y divide-ui-800 rounded-lg border border-ui-800">
                                                 {schemaProperties.map(prop => (
                                                     <div key={prop.name} className="px-4 py-2.5">
                                                         <div className="flex flex-wrap items-center gap-2">
-                                                            <code className="text-sm text-white">{prop.name}</code>
-                                                            <span className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-xs text-zinc-400">{prop.type}</span>
+                                                            <code className="text-sm text-ui-50">{prop.name}</code>
+                                                            <span className="rounded bg-ui-800 px-1.5 py-0.5 font-mono text-xs text-ui-400">{prop.type}</span>
                                                             {prop.required && (
-                                                                <span className="rounded bg-amber-500/10 px-1.5 py-0.5 text-xs text-amber-300">required</span>
+                                                                <span className="rounded bg-brand-500/10 px-1.5 py-0.5 text-xs text-brand-300">required</span>
                                                             )}
                                                         </div>
                                                         {prop.description && (
-                                                            <p className="mt-1 text-xs text-zinc-400">{prop.description}</p>
+                                                            <p className="mt-1 text-xs text-ui-400">{prop.description}</p>
                                                         )}
                                                     </div>
                                                 ))}
                                             </div>
                                         )}
                                         <details open={!schemaProperties}>
-                                            <summary className="cursor-pointer text-xs text-zinc-500 transition hover:text-zinc-300">
+                                            <summary className="cursor-pointer text-xs text-ui-500 transition hover:text-ui-300">
                                                 Raw JSON schema
                                             </summary>
-                                            <pre className="mt-2 overflow-x-auto rounded-lg border border-zinc-800 bg-zinc-950/50 px-4 py-3 font-mono text-xs text-zinc-300">
+                                            <pre className="mt-2 overflow-x-auto rounded-lg border border-ui-800 bg-ui-950/50 px-4 py-3 font-mono text-xs text-ui-300">
                                                 {JSON.stringify(schema, null, 2)}
                                             </pre>
                                         </details>

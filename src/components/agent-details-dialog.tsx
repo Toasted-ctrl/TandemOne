@@ -10,11 +10,11 @@ type AgentDetailsDialogProps = {
 }
 
 function SectionHeading({ children }: { children: ReactNode }) {
-    return <h3 className="text-xs font-medium uppercase tracking-wide text-zinc-500">{children}</h3>
+    return <h3 className="text-xs font-medium uppercase tracking-wide text-ui-500">{children}</h3>
 }
 
 function Pill({ children }: { children: ReactNode }) {
-    return <span className="rounded bg-zinc-800 px-2 py-0.5 text-xs text-zinc-300">{children}</span>
+    return <span className="rounded bg-ui-800 px-2 py-0.5 text-xs text-ui-300">{children}</span>
 }
 
 export function AgentDetailsDialog({ agentId, mcps, onClose }: AgentDetailsDialogProps) {
@@ -70,19 +70,19 @@ export function AgentDetailsDialog({ agentId, mcps, onClose }: AgentDetailsDialo
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="agent-details-title"
-                className="relative flex max-h-[85svh] w-full max-w-2xl flex-col rounded-xl border border-zinc-800 bg-zinc-900 shadow-xl"
+                className="relative flex max-h-[85svh] w-full max-w-2xl flex-col rounded-xl border border-ui-800 bg-ui-900 shadow-xl"
             >
-                <div className="flex items-start justify-between gap-4 border-b border-zinc-800/60 px-6 py-4">
+                <div className="flex items-start justify-between gap-4 border-b border-ui-800/60 px-6 py-4">
                     <div className="min-w-0">
-                        <h2 id="agent-details-title" className="truncate text-lg font-semibold text-white">
+                        <h2 id="agent-details-title" className="truncate text-lg font-semibold text-ui-50">
                             {agent?.name ?? (error ? 'Agent' : 'Loading…')}
                         </h2>
-                        <p className="truncate text-xs text-zinc-600">{agentId}</p>
+                        <p className="truncate text-xs text-ui-600">{agentId}</p>
                     </div>
                     <button
                         onClick={onClose}
                         aria-label="Close"
-                        className="flex shrink-0 cursor-pointer items-center justify-center rounded-lg p-1.5 text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-200"
+                        className="flex shrink-0 cursor-pointer items-center justify-center rounded-lg p-1.5 text-ui-400 transition hover:bg-ui-800 hover:text-ui-200"
                     >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M18 6L6 18M6 6l12 12" />
@@ -94,24 +94,24 @@ export function AgentDetailsDialog({ agentId, mcps, onClose }: AgentDetailsDialo
                     {error ? (
                         <p className="text-sm text-red-400">{error}</p>
                     ) : !agent ? (
-                        <p className="text-sm text-zinc-500">Loading agent…</p>
+                        <p className="text-sm text-ui-500">Loading agent…</p>
                     ) : (
                         <>
                             <section className="space-y-2">
                                 <SectionHeading>Model</SectionHeading>
-                                <p className="text-sm text-zinc-300">
-                                    <span className="text-zinc-500">{agent.model.provider} / </span>
+                                <p className="text-sm text-ui-300">
+                                    <span className="text-ui-500">{agent.model.provider} / </span>
                                     {agent.model.name}
                                 </p>
                             </section>
 
                             <section className="space-y-2">
                                 <SectionHeading>Sampling</SectionHeading>
-                                <div className="divide-y divide-zinc-800 rounded-lg border border-zinc-800">
+                                <div className="divide-y divide-ui-800 rounded-lg border border-ui-800">
                                     {parameters.map(([label, value]) => (
                                         <div key={label} className="flex items-center justify-between px-4 py-2">
-                                            <span className="text-sm text-zinc-300">{label}</span>
-                                            <span className={`text-sm tabular-nums ${value != null ? 'text-amber-300' : 'italic text-zinc-500'}`}>
+                                            <span className="text-sm text-ui-300">{label}</span>
+                                            <span className={`text-sm tabular-nums ${value != null ? 'text-brand-300' : 'italic text-ui-500'}`}>
                                                 {value ?? 'Default'}
                                             </span>
                                         </div>
@@ -122,7 +122,7 @@ export function AgentDetailsDialog({ agentId, mcps, onClose }: AgentDetailsDialo
                             <section className="space-y-2">
                                 <SectionHeading>Tools</SectionHeading>
                                 {enabledTools.length === 0 && mcpNames.length === 0 ? (
-                                    <p className="text-sm text-zinc-500">This agent has no tools enabled.</p>
+                                    <p className="text-sm text-ui-500">This agent has no tools enabled.</p>
                                 ) : (
                                     <div className="space-y-2">
                                         {enabledTools.length > 0 && (
@@ -132,7 +132,7 @@ export function AgentDetailsDialog({ agentId, mcps, onClose }: AgentDetailsDialo
                                         )}
                                         {mcpNames.length > 0 && (
                                             <div className="flex flex-wrap items-center gap-1.5">
-                                                <span className="text-xs text-zinc-500">MCP servers:</span>
+                                                <span className="text-xs text-ui-500">MCP servers:</span>
                                                 {mcpNames.map(mcpName => <Pill key={mcpName}>{mcpName}</Pill>)}
                                             </div>
                                         )}
@@ -142,7 +142,7 @@ export function AgentDetailsDialog({ agentId, mcps, onClose }: AgentDetailsDialo
 
                             <section className="space-y-2">
                                 <SectionHeading>System prompt</SectionHeading>
-                                <p className="whitespace-pre-wrap rounded-lg border border-zinc-800 bg-zinc-950/50 px-4 py-3 text-sm leading-relaxed text-zinc-300">
+                                <p className="whitespace-pre-wrap rounded-lg border border-ui-800 bg-ui-950/50 px-4 py-3 text-sm leading-relaxed text-ui-300">
                                     {agent.system_prompt}
                                 </p>
                             </section>
