@@ -7,6 +7,8 @@ import { SettingsKeysPage } from './pages/settings-keys-page'
 import { SettingsPersonalPage } from './pages/settings-personal-page'
 import { MyDocumentsPage } from './pages/my-documents-page'
 import { PlaygroundPage } from './pages/playground-page'
+import { TermsPage } from './pages/terms-page'
+import { PrivacyPage } from './pages/privacy-page'
 import { getUser } from './services/get-user'
 
 function AuthRedirect() {
@@ -29,6 +31,8 @@ function App() {
             <Routes>
                 <Route path="/" element={<AuthRedirect />} />
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/terms" element={<TermsPage />} />
+                <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/chat" element={<ChatPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/settings/keys" element={<SettingsKeysPage />} />
