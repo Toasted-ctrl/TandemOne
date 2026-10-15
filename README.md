@@ -1,6 +1,6 @@
 # Tandem One
 
-A web-based AI chat frontend for the [AIA API](https://github.com/Toasted-ctrl/ai_api). Chat with models from multiple providers or with your own agents, give them tools (MCP servers, web search, your files, memories and skills), and manage it all from the browser.
+A web-based AI chat frontend for [SynapseAPI](https://github.com/Toasted-ctrl/ai_api). Chat with models from multiple providers or with your own agents, give them tools (MCP servers, web search, your files, memories and skills), and manage it all from the browser.
 
 ![Chat Sampling](images/CHAT_SAMPLING.png)
 
@@ -28,7 +28,7 @@ React 19, TypeScript, Tailwind CSS v4 (with the typography plugin), Vite, React 
 ### Prerequisites
 
 - Node.js 22+
-- A running AIA backend and an API key for it
+- A running SynapseAPI backend and an API key for it
 
 ### Development
 
@@ -82,8 +82,8 @@ REGISTRY=your-registry.example.com:5000 ./build.sh minor    # or: major
 
 | Variable | Description |
 |---|---|
-| `VITE_API_KEY` | AIA API key, sent with every backend request |
-| `VITE_API_BASE_URL` | Base URL of the AIA backend (e.g. `https://your-api-host.example.com`) |
+| `VITE_API_KEY` | SynapseAPI key, sent with every backend request |
+| `VITE_API_BASE_URL` | Base URL of the SynapseAPI backend (e.g. `https://your-api-host.example.com`) |
 
 > **Note:** both values end up in the JavaScript served to the browser, so the API key is visible to anyone who can load the app. Treat it as an application identifier, not a secret; user access is controlled by the Google login session.
 
