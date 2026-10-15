@@ -85,6 +85,46 @@ function commandArgs(input: string) {
     }
 }
 
+function isTextPart(value: unknown): value is { type: "text"; text: string } {
+    return !!value && typeof value === "object"
+        && (value as Record<string, unknown>).type === "text"
+        && typeof (value as Record<string, unknown>).text === "string"
+}
+
+// Tool payloads are often JSON encoded more than once, or wrapped in MCP-style
+// [{ type: "text", text: "..." }] parts; peel those layers off so it reads as plain JSON
+function unwrapJson(value: unknown, depth = 0): unknown {
+    if (depth > 8) return value
+    if (typeof value === "string") {
+        const text = value.trim()
+        if (!/^[[{"]/.test(text)) return value
+        try {
+            return unwrapJson(JSON.parse(text), depth + 1)
+        } catch {
+            return value
+        }
+    }
+    if (Array.isArray(value)) {
+        if (value.length > 0 && value.every(isTextPart)) {
+            const parts = value.map((part) => unwrapJson(part.text, depth + 1))
+            if (parts.length === 1) return parts[0]
+            return parts.every((p) => typeof p === "string") ? parts.join("\n\n") : parts
+        }
+        return value.map((item) => unwrapJson(item, depth + 1))
+    }
+    if (value && typeof value === "object") {
+        return Object.fromEntries(
+            Object.entries(value).map(([k, v]) => [k, unwrapJson(v, depth + 1)]),
+        )
+    }
+    return value
+}
+
+function formatToolText(text: string) {
+    const value = unwrapJson(text)
+    return typeof value === "string" ? value : JSON.stringify(value, null, 2)
+}
+
 function formatDuration(ms: number) {
     return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`
 }
@@ -123,7 +163,7 @@ function ToolCallBlock({ block }: { block: ToolBlock }) {
                 {block.input.trim() && (
                     <>
                         <div className="text-ui-500"># input</div>
-                        <pre className="mb-2 whitespace-pre-wrap break-words text-ui-400">{block.input}</pre>
+                        <pre className="mb-2 whitespace-pre-wrap break-words text-ui-400">{formatToolText(block.input)}</pre>
                     </>
                 )}
                 <div className="text-ui-500"># output</div>
@@ -133,7 +173,7 @@ function ToolCallBlock({ block }: { block: ToolBlock }) {
                     </div>
                 ) : (
                     <pre className={`whitespace-pre-wrap break-words ${block.status === "error" ? "text-red-400" : "text-ui-300"}`}>
-                        {block.output || "(no output)"}
+                        {block.output ? formatToolText(block.output) : "(no output)"}
                     </pre>
                 )}
             </div>
