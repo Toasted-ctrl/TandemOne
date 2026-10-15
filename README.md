@@ -2,8 +2,6 @@
 
 A web-based AI chat frontend for [SynapseAPI](https://github.com/Toasted-ctrl/ai_api). Chat with models from multiple providers or with your own agents, give them tools (MCP servers, web search, your files, memories and skills), and manage it all from the browser.
 
-![Chat Sampling](images/CHAT_SAMPLING.png)
-
 ## Features
 
 - **Multi-provider chat** — stream responses from any configured provider and model, with adjustable sampling (temperature, top-p, top-k). Only the settings the selected model supports are offered.
@@ -15,9 +13,18 @@ A web-based AI chat frontend for [SynapseAPI](https://github.com/Toasted-ctrl/ai
 - **Settings** — view your account details, manage provider API keys, and pick a light, dark or system theme.
 - **Google login** — authentication via Google OAuth.
 
-| Chat with tools | Skill editing | Provider keys |
-|---|---|---|
-| ![Tools](images/CHAT_TOOLS.png) | ![Skill edit](images/DOCUMENT_SKILL_EDIT.png) | ![Provider keys](images/SETTINGS_PROVIDER_KEYS.png) |
+<table>
+  <tr>
+    <th>Chat with an agent</th>
+    <th>Chat with tools (light mode)</th>
+    <th>Agent playground</th>
+  </tr>
+  <tr>
+    <td><img src="images/CHAT_AGENT_ONGOING.png" alt="Chat with an agent" width="250"></td>
+    <td><img src="images/CHAT_MODEL_TOOL_LIGHTMODE.png" alt="Chat with tools (light mode)" width="250"></td>
+    <td><img src="images/PLAYGROUND_CREATE.png" alt="Agent playground" width="250"></td>
+  </tr>
+</table>
 
 ## Tech stack
 
