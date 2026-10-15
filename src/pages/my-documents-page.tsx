@@ -306,7 +306,7 @@ export function MyDocumentsPage() {
                                             <KindIcon kind={tab} />
                                             <div className="min-w-0 flex-1">
                                                 <p className="truncate text-sm text-ui-50 group-hover:text-brand-300">{doc.name}</p>
-                                                <p className="truncate text-xs text-ui-600">{doc.id.slice(0, 18)}</p>
+                                                <p className="truncate text-xs text-ui-600" title={doc.id}>{doc.id.length > 18 ? `${doc.id.slice(0, 18)}...` : doc.id}</p>
                                             </div>
                                         </button>
                                     ) : (
@@ -314,7 +314,7 @@ export function MyDocumentsPage() {
                                             <KindIcon kind={tab} />
                                             <div className="min-w-0 flex-1">
                                                 <p className="truncate text-sm text-ui-50">{doc.name}</p>
-                                                <p className="truncate text-xs text-ui-600">{doc.id.slice(0, 18)}</p>
+                                                <p className="truncate text-xs text-ui-600" title={doc.id}>{doc.id.length > 18 ? `${doc.id.slice(0, 18)}...` : doc.id}</p>
                                             </div>
                                         </>
                                     )}

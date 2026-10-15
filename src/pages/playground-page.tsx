@@ -146,7 +146,7 @@ export function PlaygroundPage() {
                                         <AgentIcon />
                                         <div className="min-w-0 flex-1">
                                             <p className="truncate text-sm text-ui-50 group-hover:text-brand-300">{agent.name}</p>
-                                            <p className="truncate text-xs text-ui-600">{agent.id.slice(0, 18)}</p>
+                                            <p className="truncate text-xs text-ui-600" title={agent.id}>{agent.id.length > 18 ? `${agent.id.slice(0, 18)}...` : agent.id}</p>
                                         </div>
                                     </button>
                                     <button
