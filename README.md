@@ -1,57 +1,65 @@
 # Tandem One
 
-A web-based AI chat frontend that connects to AIA (https://github.com/Toasted-ctrl/ai_api) API. Supports multiple AI providers and models, MCP tool calling, web search, and a personal vector store for files and memories.
-
-## Features
-
-- **Multi-provider chat** — stream responses from configurable AI providers and models with adjustable parameters (temperature, top-k, top-p).
-- **MCP tool use** — select and invoke MCP tools during conversations, with inline display of tool calls and results.
-- **Web search** — opt-in toggle that lets the agent search the internet; off by default and clearly highlighted when enabled.
-- **Vector store** — upload documents (PDF, DOCX, TXT, MD, CSV) or save text memories to a per-user vector store for retrieval-augmented generation.
-- **Skills** — Add skills for your models/agents to use. Skills descriptions are stored in and discoverable through vector search.
-- **Agents** — configure your own agents in the Playground: give each one a name, a system prompt, a model with sampling settings, and its tools (MCP servers, vector search, web search). Switch the chat between a model and an agent; when chatting with an agent, its own model and tools are used.
-- **Google login** — authentication via Google OAuth.
-- **Settings** — manage provider API keys and model preferences.
+A web-based AI chat frontend for the [AIA API](https://github.com/Toasted-ctrl/ai_api). Chat with models from multiple providers or with your own agents, give them tools (MCP servers, web search, your files, memories and skills), and manage it all from the browser.
 
 ![Chat Sampling](images/CHAT_SAMPLING.png)
 
+## Features
+
+- **Multi-provider chat** — stream responses from any configured provider and model, with adjustable sampling (temperature, top-p, top-k). Only the settings the selected model supports are offered.
+- **Agents** — build your own agents in the Playground: a name, a system prompt, a model with sampling settings, and a set of tools. Agents can be viewed, edited and deleted later. In the chat, switch between talking to a model directly or to one of your agents; an agent always brings its own model and tools.
+- **Tool use** — MCP tools, web search, and search over your own files, memories and skills. Tool calls and their results are shown inline in the conversation and can be expanded to see the details.
+- **Web search** — opt-in per conversation; off by default and clearly highlighted when enabled.
+- **My documents** — upload files (PDF, DOCX, TXT, MD, CSV) or save text memories to a personal vector store for retrieval.
+- **Skills** — write reusable instructions for your models and agents. Skill descriptions are indexed so they can be discovered through vector search, and instructions can be edited in place.
+- **Settings** — view your account details, manage provider API keys, and pick a light, dark or system theme.
+- **Google login** — authentication via Google OAuth.
+
+| Chat with tools | Skill editing | Provider keys |
+|---|---|---|
+| ![Tools](images/CHAT_TOOLS.png) | ![Skill edit](images/DOCUMENT_SKILL_EDIT.png) | ![Provider keys](images/SETTINGS_PROVIDER_KEYS.png) |
+
 ## Tech stack
 
-React 19, TypeScript, Tailwind CSS v4, Vite, React Router.
+React 19, TypeScript, Tailwind CSS v4 (with the typography plugin), Vite, React Router. Markdown is rendered with `react-markdown` + `remark-gfm`; text is extracted from uploads client-side with `pdfjs-dist` and `mammoth`.
 
 ## Getting started
 
 ### Prerequisites
 
 - Node.js 22+
-- An API key for the AIA backend
+- A running AIA backend and an API key for it
 
 ### Development
 
+Create a `.env` file in the project root:
+
+```sh
+VITE_API_KEY=your-api-key
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+Then:
+
 ```sh
 npm install
-cp .env.example .env   # add your VITE_API_KEY and VITE_API_BASE_URL
 npm run dev
 ```
 
 The dev server starts at `http://localhost:5173`.
 
-### Build
+### Scripts
 
-```sh
-npm run build
-npm run preview
-```
-
-### Lint
-
-```sh
-npm run lint
-```
+| Command | What it does |
+|---|---|
+| `npm run dev` | Start the Vite dev server |
+| `npm run build` | Type-check and build to `dist/` |
+| `npm run preview` | Serve the production build locally |
+| `npm run lint` | Run ESLint |
 
 ## Docker
 
-The app ships as an nginx-based container. Environment variables are injected at runtime via the entrypoint script, so the same image works across environments.
+The app ships as an nginx-based container. The build bakes placeholders into the bundle, and `entrypoint.sh` replaces them with the real values when the container starts, so one image works in every environment.
 
 ```sh
 docker build -t aife .
@@ -61,21 +69,31 @@ docker run -p 8080:80 \
   aife
 ```
 
-A Kubernetes deployment is available under `k8s/`.
+### Releasing
 
-## Project structure
+`build.sh` bumps the version in `VERSION`, builds the image and pushes it to your registry:
 
-```
-src/
-├── components/      UI components (header, chat input, selectors, file upload)
-├── features/auth/   Google OAuth login
-├── pages/           Route pages (chat, login, settings, documents, playground)
-└── services/        API clients (streaming, vector store, providers, documents)
+```sh
+REGISTRY=your-registry.example.com:5000 ./build.sh          # patch bump (default)
+REGISTRY=your-registry.example.com:5000 ./build.sh minor    # or: major
 ```
 
 ## Environment variables
 
 | Variable | Description |
 |---|---|
-| `VITE_API_KEY` | AIA API key, used for all backend requests |
+| `VITE_API_KEY` | AIA API key, sent with every backend request |
 | `VITE_API_BASE_URL` | Base URL of the AIA backend (e.g. `https://your-api-host.example.com`) |
+
+> **Note:** both values end up in the JavaScript served to the browser, so the API key is visible to anyone who can load the app. Treat it as an application identifier, not a secret; user access is controlled by the Google login session.
+
+## Project structure
+
+```
+src/
+├── components/      UI components (chat window and toolbar, selectors, agent and skill forms, dialogs)
+├── features/auth/   Google OAuth login
+├── pages/           Route pages (chat, login, my documents, playground, settings)
+├── services/        API clients, one per endpoint (streaming chat, agents, skills, documents, providers, user)
+└── theme.ts         Light / dark / system theme handling
+```
