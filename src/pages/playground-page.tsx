@@ -8,7 +8,7 @@ import { deletePlaygroundAgent } from '../services/delete-playground-agent'
 import { getAgents, type AgentSummary } from '../services/get-agents'
 import { getMcps, type Mcp } from '../services/get-mcps'
 import { getProviderModels, type ProvidersOffering } from '../services/get-models'
-import type { AgentPayload } from '../services/get-playground-agent'
+import type { Agent, AgentPayload } from '../services/get-playground-agent'
 import { getProviderConfiguration, type ProviderConfiguration } from '../services/get-provider-configuration'
 import { getUser } from '../services/get-user'
 
@@ -40,6 +40,9 @@ export function PlaygroundPage() {
     const [saveError, setSaveError] = useState<string | null>(null)
     const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
     const closeAgentDetails = useCallback(() => setSelectedAgentId(null), [])
+    const handleAgentUpdated = useCallback((updated: Agent) => {
+        setAgents(prev => prev.map(a => (a.id === updated.id ? { ...a, name: updated.name } : a)))
+    }, [])
 
     useEffect(() => {
         getUser().catch(() => navigate('/login', { replace: true }))
@@ -172,7 +175,10 @@ export function PlaygroundPage() {
                     key={selectedAgentId}
                     agentId={selectedAgentId}
                     mcps={mcps}
+                    offerings={offerings}
+                    providerConfigs={providerConfigs}
                     onClose={closeAgentDetails}
+                    onUpdated={handleAgentUpdated}
                 />
             )}
         </div>

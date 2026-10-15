@@ -1,12 +1,19 @@
-import { useEffect, useState, type ReactNode } from 'react'
-import { getPlaygroundAgent, type Agent } from '../services/get-playground-agent'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { AgentForm } from './agent-form'
+import { getPlaygroundAgent, type Agent, type AgentPayload } from '../services/get-playground-agent'
 import type { Mcp } from '../services/get-mcps'
+import type { ProvidersOffering } from '../services/get-models'
+import type { ProviderConfiguration } from '../services/get-provider-configuration'
+import { updatePlaygroundAgent } from '../services/update-playground-agent'
 
 type AgentDetailsDialogProps = {
     agentId: string
     // Used to show MCP names instead of ids
     mcps: Mcp[]
+    offerings: ProvidersOffering | null
+    providerConfigs: ProviderConfiguration[]
     onClose: () => void
+    onUpdated: (agent: Agent) => void
 }
 
 function SectionHeading({ children }: { children: ReactNode }) {
@@ -17,9 +24,49 @@ function Pill({ children }: { children: ReactNode }) {
     return <span className="rounded bg-ui-800 px-2 py-0.5 text-xs text-ui-300">{children}</span>
 }
 
-export function AgentDetailsDialog({ agentId, mcps, onClose }: AgentDetailsDialogProps) {
+export function AgentDetailsDialog({ agentId, mcps, offerings, providerConfigs, onClose, onUpdated }: AgentDetailsDialogProps) {
     const [agent, setAgent] = useState<Agent | null>(null)
     const [error, setError] = useState<string | null>(null)
+
+    const [editing, setEditing] = useState(false)
+    const [dirty, setDirty] = useState(false)
+    const [saveError, setSaveError] = useState<string | null>(null)
+
+    const confirmDiscard = useCallback(
+        () => !dirty || window.confirm('Discard your unsaved changes to this agent?'),
+        [dirty]
+    )
+
+    const requestClose = useCallback(() => {
+        if (confirmDiscard()) onClose()
+    }, [confirmDiscard, onClose])
+
+    function startEditing() {
+        setSaveError(null)
+        setEditing(true)
+    }
+
+    function cancelEditing() {
+        if (!confirmDiscard()) return
+        setEditing(false)
+        setDirty(false)
+        setSaveError(null)
+    }
+
+    async function handleSave(payload: AgentPayload): Promise<boolean> {
+        setSaveError(null)
+        try {
+            const updated = await updatePlaygroundAgent(agentId, payload)
+            setAgent(updated)
+            setEditing(false)
+            setDirty(false)
+            onUpdated(updated)
+            return true
+        } catch (err) {
+            setSaveError(err instanceof Error ? err.message : 'Failed to update agent')
+            return false
+        }
+    }
 
     useEffect(() => {
         let cancelled = false
@@ -31,11 +78,11 @@ export function AgentDetailsDialog({ agentId, mcps, onClose }: AgentDetailsDialo
 
     useEffect(() => {
         function handleKey(e: KeyboardEvent) {
-            if (e.key === 'Escape') onClose()
+            if (e.key === 'Escape') requestClose()
         }
         document.addEventListener('keydown', handleKey)
         return () => document.removeEventListener('keydown', handleKey)
-    }, [onClose])
+    }, [requestClose])
 
     useEffect(() => {
         const previousOverflow = document.body.style.overflow
@@ -64,7 +111,7 @@ export function AgentDetailsDialog({ agentId, mcps, onClose }: AgentDetailsDialo
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+            <div className="absolute inset-0 bg-black/60" onClick={requestClose} />
 
             <div
                 role="dialog"
@@ -79,15 +126,29 @@ export function AgentDetailsDialog({ agentId, mcps, onClose }: AgentDetailsDialo
                         </h2>
                         <p className="truncate text-xs text-ui-600">{agentId}</p>
                     </div>
-                    <button
-                        onClick={onClose}
-                        aria-label="Close"
-                        className="flex shrink-0 cursor-pointer items-center justify-center rounded-lg p-1.5 text-ui-400 transition hover:bg-ui-800 hover:text-ui-200"
-                    >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M18 6L6 18M6 6l12 12" />
-                        </svg>
-                    </button>
+                    <div className="flex shrink-0 items-center gap-1">
+                        {agent && !editing && (
+                            <button
+                                onClick={startEditing}
+                                className="flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-ui-400 transition hover:bg-ui-800 hover:text-ui-200"
+                            >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M12 20h9" />
+                                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z" />
+                                </svg>
+                                Edit
+                            </button>
+                        )}
+                        <button
+                            onClick={requestClose}
+                            aria-label="Close"
+                            className="flex shrink-0 cursor-pointer items-center justify-center rounded-lg p-1.5 text-ui-400 transition hover:bg-ui-800 hover:text-ui-200"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M18 6L6 18M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
@@ -95,6 +156,19 @@ export function AgentDetailsDialog({ agentId, mcps, onClose }: AgentDetailsDialo
                         <p className="text-sm text-red-400">{error}</p>
                     ) : !agent ? (
                         <p className="text-sm text-ui-500">Loading agent…</p>
+                    ) : editing ? (
+                        <div>
+                            <AgentForm
+                                offerings={offerings}
+                                providerConfigs={providerConfigs}
+                                mcps={mcps}
+                                initialAgent={agent}
+                                onSave={handleSave}
+                                onCancel={cancelEditing}
+                                onDirtyChange={setDirty}
+                            />
+                            {saveError && <p className="mt-3 text-xs text-red-400">{saveError}</p>}
+                        </div>
                     ) : (
                         <>
                             <section className="space-y-2">
