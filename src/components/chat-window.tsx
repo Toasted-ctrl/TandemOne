@@ -3,10 +3,18 @@ import Markdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { LogoMark } from "./logo"
 
+export type ToolStatus = "running" | "success" | "error"
+
+// A tool call and its result, rendered together like a command and its output
 export type ToolBlock = {
-    type: "tool_use" | "tool_result"
+    type: "tool"
+    id?: string
     name: string
-    content: string
+    input: string
+    output?: string
+    status: ToolStatus
+    startedAt?: number
+    finishedAt?: number
 }
 
 export type ContentBlock =
@@ -54,22 +62,81 @@ function Greeting({ text, name }: { text: string; name?: string }) {
     )
 }
 
+// Keys most likely to hold the argument worth showing on the command line
+const PRIMARY_ARG_KEYS = ["query", "q", "search", "url", "path", "command", "name", "text", "prompt"]
+
+function commandArgs(input: string) {
+    const raw = input.trim()
+    if (!raw) return ""
+    try {
+        const parsed = JSON.parse(raw)
+        if (typeof parsed === "string") return JSON.stringify(parsed)
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+            const entries = Object.entries(parsed as Record<string, unknown>)
+            if (entries.length === 0) return ""
+            const key = PRIMARY_ARG_KEYS.find((k) => typeof parsed[k] === "string")
+                ?? entries.find(([, v]) => typeof v === "string")?.[0]
+            if (key) return JSON.stringify(parsed[key])
+            return JSON.stringify(parsed)
+        }
+        return JSON.stringify(parsed)
+    } catch {
+        return raw.replace(/\s+/g, " ")
+    }
+}
+
+function formatDuration(ms: number) {
+    return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`
+}
+
+const STATUS_STYLES: Record<ToolStatus, { border: string; dot: string; text: string }> = {
+    running: { border: "border-l-brand-400", dot: "bg-brand-400 animate-pulse", text: "text-brand-400" },
+    success: { border: "border-l-green-400", dot: "bg-green-400", text: "text-green-400" },
+    error: { border: "border-l-red-400", dot: "bg-red-400", text: "text-red-400" },
+}
+
 function ToolCallBlock({ block }: { block: ToolBlock }) {
-    const label = block.type === "tool_use"
-        ? `Called: ${block.name}`
-        : `Result: ${block.name}`
+    const styles = STATUS_STYLES[block.status]
+    const args = commandArgs(block.input)
+    const duration = block.startedAt && block.finishedAt
+        ? formatDuration(block.finishedAt - block.startedAt)
+        : null
 
     return (
-        <details className="my-2 rounded-lg border border-ui-700/60 bg-ui-900">
-            <summary className="flex cursor-pointer items-center gap-2 px-3 py-2 text-xs font-medium text-ui-400 select-none hover:text-ui-300">
-                <svg className="h-3.5 w-3.5 shrink-0 transition-transform [[open]>&]:rotate-90" viewBox="0 0 16 16" fill="currentColor">
+        <details className={`group my-2 overflow-hidden rounded-lg border border-l-2 border-ui-700/60 bg-ui-950 font-mono text-xs ${styles.border}`}>
+            <summary className="flex cursor-pointer items-center gap-2 px-3 py-2 select-none hover:bg-ui-900/60">
+                <svg className="h-3 w-3 shrink-0 text-ui-500 transition-transform group-open:rotate-90" viewBox="0 0 16 16" fill="currentColor">
                     <path d="M6.22 4.22a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06l-3.25 3.25a.75.75 0 0 1-1.06-1.06L8.94 8 6.22 5.28a.75.75 0 0 1 0-1.06Z" />
                 </svg>
-                <span className="truncate">{label}</span>
+                <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${styles.dot}`} />
+                <span className="min-w-0 flex-1 truncate">
+                    <span className="text-brand-400">$</span>{" "}
+                    <span className="font-semibold text-ui-200">{block.name}</span>
+                    {args && <span className="text-ui-400"> {args}</span>}
+                </span>
+                <span className={`shrink-0 ${styles.text}`}>
+                    {block.status === "running" ? "running…" : block.status === "success" ? "✓" : "✗"}
+                    {duration && <span className="ml-1.5 text-ui-500">{duration}</span>}
+                </span>
             </summary>
-            <pre className="max-h-64 overflow-auto border-t border-ui-700/50 px-3 py-2 text-xs leading-relaxed text-ui-400">
-                {block.content}
-            </pre>
+            <div className="max-h-72 overflow-auto border-t border-ui-700/50 px-3 py-2 leading-relaxed">
+                {block.input.trim() && (
+                    <>
+                        <div className="text-ui-500"># input</div>
+                        <pre className="mb-2 whitespace-pre-wrap break-words text-ui-400">{block.input}</pre>
+                    </>
+                )}
+                <div className="text-ui-500"># output</div>
+                {block.output === undefined ? (
+                    <div className="text-ui-500">
+                        waiting for result<span className="animate-pulse">_</span>
+                    </div>
+                ) : (
+                    <pre className={`whitespace-pre-wrap break-words ${block.status === "error" ? "text-red-400" : "text-ui-300"}`}>
+                        {block.output || "(no output)"}
+                    </pre>
+                )}
+            </div>
         </details>
     )
 }

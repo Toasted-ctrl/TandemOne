@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { AppHeader } from "../components/app-header"
 import { ChatInput } from "../components/chat-input"
-import { ChatWindow, type Message, type ContentBlock } from "../components/chat-window"
+import { ChatWindow, type Message, type ContentBlock, type ToolBlock } from "../components/chat-window"
 import type { ChatMode } from "../components/chat-mode-toggle"
 import { getAgents, type AgentSummary } from "../services/get-agents"
 import { getProviderModels, type ProvidersOffering } from "../services/get-models"
@@ -151,6 +151,26 @@ export function ChatPage() {
             })
         }
 
+        // Updates the latest tool block matching `match`, or appends `fallback` if there is none
+        function updateToolBlock(
+            match: (b: ToolBlock) => boolean,
+            update: (b: ToolBlock) => ToolBlock,
+            fallback?: ToolBlock,
+        ) {
+            setMessages((prev) => {
+                const updated = [...prev]
+                const last = updated[updated.length - 1]
+                const blocks = [...(last.blocks ?? [])]
+                const at = blocks.findLastIndex((b) => b.type === "tool" && match(b))
+                const block = blocks[at]
+                if (block?.type === "tool") blocks[at] = update(block)
+                else if (fallback) blocks.push(fallback)
+                else return prev
+                updated[updated.length - 1] = { ...last, blocks }
+                return updated
+            })
+        }
+
         try {
             const mcpToolIds = selectedMcps
                 .map((name) => mcps.find((m) => m.name === name)?.id)
@@ -191,19 +211,23 @@ export function ChatPage() {
                             return updated
                         })
                     },
-                    onToolUse: (name, input) => {
-                        appendBlock({ type: "tool_use", name, content: input })
+                    onToolCall: (id, name, args) => {
+                        appendBlock({ type: "tool", id, name, input: args, status: "running", startedAt: Date.now() })
                     },
-                    onToolResult: (name, content) => {
-                        appendBlock({ type: "tool_result", name, content })
-                        setMessages((prev) => {
-                            const updated = [...prev]
-                            const last = updated[updated.length - 1]
-                            const blocks = [...(last.blocks ?? [])]
-                            blocks.push({ type: "text", text: "" })
-                            updated[updated.length - 1] = { ...last, blocks }
-                            return updated
-                        })
+                    onToolCallArgs: (id, args) => {
+                        updateToolBlock(
+                            (b) => b.id === id,
+                            (b) => ({ ...b, input: b.input + args }),
+                        )
+                    },
+                    onToolResult: (id, name, output, isError) => {
+                        const status = isError ? "error" : "success"
+                        updateToolBlock(
+                            // Without an id, pair with the latest running call of the same tool
+                            (b) => (id ? b.id === id : b.name === name && b.status === "running"),
+                            (b) => ({ ...b, output, status, finishedAt: Date.now() }),
+                            { type: "tool", id, name, input: "", output, status },
+                        )
                     },
                     onThreadId: (id) => setThreadId(id),
                 },
@@ -224,6 +248,17 @@ export function ChatPage() {
                 })
             }
         } finally {
+            // Any call still waiting when the stream ends never got a result
+            setMessages((prev) => {
+                const last = prev[prev.length - 1]
+                if (!last?.blocks?.some((b) => b.type === "tool" && b.status === "running")) return prev
+                const blocks = last.blocks.map((b) =>
+                    b.type === "tool" && b.status === "running"
+                        ? { ...b, status: "error" as const, output: b.output ?? "No result received." }
+                        : b,
+                )
+                return [...prev.slice(0, -1), { ...last, blocks }]
+            })
             abortRef.current = null
             setLoading(false)
         }
