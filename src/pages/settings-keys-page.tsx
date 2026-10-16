@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { AppHeader } from "../components/app-header"
+import { BackToSettingsLink } from "../components/back-to-settings-link"
 import { getProviderConfiguration, type ProviderConfiguration } from "../services/get-provider-configuration"
 import { saveUserKey } from "../services/save-user-key"
 
@@ -50,6 +51,7 @@ export function SettingsKeysPage() {
             <AppHeader />
             <div className="flex-1 px-4 py-10">
             <div className="mx-auto max-w-xl">
+                <BackToSettingsLink />
                 <h1 className="text-2xl font-bold tracking-tight text-ui-50">
                     API Keys
                 </h1>

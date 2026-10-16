@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { AppHeader } from "../components/app-header"
+import { BackToSettingsLink } from "../components/back-to-settings-link"
 import { getUser, type User } from "../services/get-user"
 
 export function SettingsPersonalPage() {
@@ -26,6 +27,7 @@ export function SettingsPersonalPage() {
             <AppHeader />
             <div className="flex-1 px-4 py-10">
             <div className="mx-auto max-w-xl">
+                <BackToSettingsLink />
                 <h1 className="text-2xl font-bold tracking-tight text-ui-50">
                     Personal
                 </h1>
