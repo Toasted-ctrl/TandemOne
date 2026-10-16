@@ -7,6 +7,7 @@ import { useTheme, type ThemePreference } from "../theme"
 const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
     { value: "light", label: "Light" },
     { value: "dark", label: "Dark" },
+    { value: "funky", label: "Funky" },
     { value: "system", label: "System" },
 ]
 
@@ -83,7 +84,7 @@ export function SettingsPage() {
                             </div>
                             <div>
                                 <span className="text-sm font-medium text-ui-50">Appearance</span>
-                                <p className="text-xs text-ui-500">Light, dark, or follow your device</p>
+                                <p className="text-xs text-ui-500">Light, dark, funky, or follow your device</p>
                             </div>
                         </div>
                         <div role="radiogroup" aria-label="Theme" className="flex gap-1">

@@ -10,7 +10,7 @@ A web-based AI chat frontend for [SynapseAPI](https://github.com/Toasted-ctrl/ai
 - **Web search** — opt-in per conversation; off by default and clearly highlighted when enabled.
 - **My documents** — upload files (PDF, DOCX, TXT, MD, CSV) or save text memories to a personal vector store for retrieval.
 - **Skills** — write reusable instructions for your models and agents. Skill descriptions are indexed so they can be discovered through vector search, and instructions can be edited in place.
-- **Settings** — view your account details, manage provider API keys, and pick a light, dark or system theme.
+- **Settings** — view your account details, manage provider API keys, and pick a light, dark, funky or system theme.
 - **Google login** — authentication via Google OAuth.
 
 <table>
@@ -102,5 +102,5 @@ src/
 ├── features/auth/   Google OAuth login
 ├── pages/           Route pages (chat, login, my documents, playground, settings)
 ├── services/        API clients, one per endpoint (streaming chat, agents, skills, documents, providers, user)
-└── theme.ts         Light / dark / system theme handling
+└── theme.ts         Light / dark / funky / system theme handling
 ```

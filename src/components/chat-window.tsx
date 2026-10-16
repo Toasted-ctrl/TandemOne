@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react"
 import Markdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { LogoMark } from "./logo"
+import { ThinkingIndicator } from "./thinking-indicator"
 
 export type ToolStatus = "running" | "success" | "error"
 
@@ -38,10 +39,10 @@ type ChatWindowProps = {
     assistantName?: string
 }
 
-function AssistantAvatar() {
+function AssistantAvatar({ working }: { working?: boolean }) {
     return (
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-ui-700/60 bg-ui-900">
-            <LogoMark className="h-4 w-5" />
+            <LogoMark className="h-4 w-5" animated={working} />
         </div>
     )
 }
@@ -188,6 +189,13 @@ export function ChatWindow({ messages, loading, greeting, greetingName, assistan
         bottomRef.current?.scrollIntoView({ behavior: "smooth" })
     }, [messages])
 
+    // While a reply is in progress, the last message is the (possibly empty) assistant placeholder
+    const last = messages[messages.length - 1]
+    const replying = loading && last?.role === "assistant"
+    // Show the thinking status until text starts streaming, and again while tools run
+    const lastBlock = last?.blocks?.[last.blocks.length - 1]
+    const waiting = replying && !(lastBlock ? lastBlock.type === "text" && lastBlock.text : last.content)
+
     if (messages.length === 0) {
         return (
             <div className="flex flex-1 flex-col items-center justify-center gap-3 overflow-y-auto px-6 text-center">
@@ -220,13 +228,8 @@ export function ChatWindow({ messages, loading, greeting, greetingName, assistan
                         </div>
                     ) : (
                         <div key={i} className="mb-6 flex gap-3">
-                            <AssistantAvatar />
+                            <AssistantAvatar working={replying && i === messages.length - 1} />
                             <div className="min-w-0 max-w-none pt-1">
-                                {msg.assistantName && (
-                                    <div className="mb-1 truncate text-[11px] font-medium text-ui-500">
-                                        {msg.assistantName}
-                                    </div>
-                                )}
                                 {msg.blocks?.length ? (
                                     msg.blocks.map((block, j) =>
                                         block.type === "text" ? (
@@ -242,17 +245,21 @@ export function ChatWindow({ messages, loading, greeting, greetingName, assistan
                                         <Markdown remarkPlugins={[remarkGfm]}>{msg.content}</Markdown>
                                     </div>
                                 )}
+                                {waiting && i === messages.length - 1 && <ThinkingIndicator />}
+                                {msg.assistantName && (
+                                    <div className="mt-1.5 truncate text-[11px] font-medium text-ui-500">
+                                        {msg.assistantName}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ),
                 )}
-                {loading && (
+                {loading && !replying && (
                     <div className="mb-6 flex gap-3">
-                        <AssistantAvatar />
-                        <div className="flex items-center gap-1 pt-1.5">
-                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-400" />
-                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-400 [animation-delay:150ms]" />
-                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-400 [animation-delay:300ms]" />
+                        <AssistantAvatar working />
+                        <div className="pt-1">
+                            <ThinkingIndicator />
                         </div>
                     </div>
                 )}

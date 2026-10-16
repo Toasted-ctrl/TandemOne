@@ -35,6 +35,14 @@
     --color-flame-from: #ff4f1f;
     --color-flame-to: #ffa41f;
 
+    /* "Thinking" state: the logo blocks take turns stepping forward */
+    --animate-tandem-step: tandem-step 1s ease-in-out infinite;
+
+    @keyframes tandem-step {
+        0%, 100% { transform: translate(0, 0); }
+        50% { transform: translate(6%, -14%); }
+    }
+
     /* Blocky: tighter corners across the board */
     --radius-sm: 0.125rem;
     --radius-md: 0.25rem;
@@ -125,6 +133,33 @@
     --color-indigo-400: oklch(67.3% 0.182 276.935);
 }
 
+/* Funky: a retro synthwave take on dark mode (deep violet, hot pink, electric cyan) */
+:root.funky {
+    --ui-50: #ffffff;
+    --ui-100: #f7efff;
+    --ui-200: #ecdcff;
+    --ui-300: #d4bdf5;
+    --ui-400: #ab8fd6;
+    --ui-500: #8066b0;
+    --ui-600: #56418a;
+    --ui-700: #3a2668;
+    --ui-800: #2a1752;
+    --ui-900: #1d0c3d;
+    --ui-950: #12052a;
+
+    --brand-100: #ffe0f4;
+    --brand-200: #ffb3e6;
+    --brand-300: #ff80d5;
+    --brand-400: #ff4fc4;
+    --brand-500: #ff2db4;
+    --brand-600: #e0129a;
+
+    --color-flame-from: #ff2db4;
+    --color-flame-to: #22e4ff;
+
+    --grid-line: rgb(34 228 255 / 0.04);
+}
+
 body {
     @apply bg-ui-950 text-ui-200 antialiased;
 }
@@ -140,6 +175,30 @@ body {
 /* Primary call-to-action fill, matching the logo gradient */
 @utility bg-flame {
     background-image: linear-gradient(135deg, var(--color-flame-from), var(--color-flame-to));
+}
+
+/* Used together by the thinking indicator (see src/components/thinking-indicator.tsx) */
+@keyframes shimmer {
+    from { background-position: 100% 0; }
+    to { background-position: -100% 0; }
+}
+
+@keyframes phrase-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Muted text with a brand-coloured highlight sweeping across it (animate with `shimmer`) */
+@utility text-shimmer {
+    color: transparent;
+    background-image: linear-gradient(
+        90deg,
+        var(--color-ui-500) 40%,
+        var(--color-brand-300) 50%,
+        var(--color-ui-500) 60%
+    );
+    background-size: 200% 100%;
+    background-clip: text;
 }
 
 @utility scrollbar-thin {
