@@ -81,7 +81,7 @@ export function SettingsKeysPage() {
                     <div className="mt-8 space-y-4">
                         {providersRequiringKeys.map((provider) => (
                             <div
-                                key={provider.name}
+                                key={provider.id}
                                 className="rounded-xl border border-ui-800 bg-ui-900 p-5"
                             >
                                 <div className="flex items-center justify-between">
@@ -99,27 +99,38 @@ export function SettingsKeysPage() {
                                     )}
                                 </div>
 
-                                <div className="mt-3 flex items-end gap-2">
-                                    <input
-                                        type="password"
-                                        value={keyInputs[provider.name] ?? ""}
-                                        onChange={(e) =>
-                                            setKeyInputs((prev) => ({
-                                                ...prev,
-                                                [provider.name]: e.target.value,
-                                            }))
-                                        }
-                                        placeholder={provider.api_key_configured ? "Replace existing key..." : "Enter API key..."}
-                                        className="flex-1 rounded-lg border border-ui-700 bg-ui-800 px-3 py-2 text-sm text-ui-100 placeholder-ui-500 outline-none transition focus:border-ui-600 focus:ring-1 focus:ring-ui-600"
-                                    />
-                                    <button
-                                        onClick={() => handleSave(provider.name)}
-                                        disabled={!keyInputs[provider.name]?.trim() || saving === provider.name}
-                                        className="shrink-0 cursor-pointer rounded-lg bg-ui-50 px-4 py-2 text-sm font-medium text-ui-900 transition-all hover:bg-ui-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
-                                    >
-                                        {saving === provider.name ? "Saving..." : "Save"}
-                                    </button>
-                                </div>
+                                {provider.api_key_short && (
+                                    <div className="mt-2 flex items-center gap-2 text-xs text-ui-500">
+                                        <span>Current key:</span>
+                                        <code className="rounded bg-ui-800 px-1.5 py-0.5 font-mono text-ui-300">
+                                            {provider.api_key_short}…
+                                        </code>
+                                    </div>
+                                )}
+
+                                {!provider.api_key_configured && (
+                                    <div className="mt-3 flex items-end gap-2">
+                                        <input
+                                            type="password"
+                                            value={keyInputs[provider.name] ?? ""}
+                                            onChange={(e) =>
+                                                setKeyInputs((prev) => ({
+                                                    ...prev,
+                                                    [provider.name]: e.target.value,
+                                                }))
+                                            }
+                                            placeholder="Enter API key..."
+                                            className="flex-1 rounded-lg border border-ui-700 bg-ui-800 px-3 py-2 text-sm text-ui-100 placeholder-ui-500 outline-none transition focus:border-ui-600 focus:ring-1 focus:ring-ui-600"
+                                        />
+                                        <button
+                                            onClick={() => handleSave(provider.name)}
+                                            disabled={!keyInputs[provider.name]?.trim() || saving === provider.name}
+                                            className="shrink-0 cursor-pointer rounded-lg bg-ui-50 px-4 py-2 text-sm font-medium text-ui-900 transition-all hover:bg-ui-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
+                                        >
+                                            {saving === provider.name ? "Saving..." : "Save"}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>

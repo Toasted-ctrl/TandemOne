@@ -1,7 +1,11 @@
 export type ProviderConfiguration = {
+    id: string
     name: string
+    internal: boolean
     requires_api_key: boolean
     api_key_configured: boolean
+    api_key_id: string | null
+    api_key_short: string | null
 }
 
 
