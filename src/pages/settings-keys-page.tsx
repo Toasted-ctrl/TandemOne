@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { AppHeader } from "../components/app-header"
 import { BackToSettingsLink } from "../components/back-to-settings-link"
 import { getProviderConfiguration, type ProviderConfiguration } from "../services/get-provider-configuration"
+import { deleteUserKey } from "../services/delete-user-key"
 import { saveUserKey } from "../services/save-user-key"
 
 export function SettingsKeysPage() {
@@ -9,6 +10,7 @@ export function SettingsKeysPage() {
     const [loading, setLoading] = useState(true)
     const [keyInputs, setKeyInputs] = useState<Record<string, string>>({})
     const [saving, setSaving] = useState<string | null>(null)
+    const [deleting, setDeleting] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState<string | null>(null)
 
@@ -41,6 +43,22 @@ export function SettingsKeysPage() {
             setError(`Failed to save API key for ${providerName}`)
         } finally {
             setSaving(null)
+        }
+    }
+
+    async function handleDelete(providerName: string, keyId: string) {
+        setDeleting(keyId)
+        setError(null)
+        setSuccess(null)
+
+        try {
+            await deleteUserKey(keyId)
+            setSuccess(`API key deleted for ${providerName}`)
+            loadProviders()
+        } catch {
+            setError(`Failed to delete API key for ${providerName}`)
+        } finally {
+            setDeleting(null)
         }
     }
 
@@ -89,24 +107,33 @@ export function SettingsKeysPage() {
                                         {provider.name}
                                     </span>
                                     {provider.api_key_configured ? (
-                                        <span className="rounded-full bg-green-900/50 px-2.5 py-0.5 text-xs font-medium text-green-400">
-                                            Configured
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <code className="rounded-full bg-green-900/50 px-2.5 py-0.5 font-mono text-xs font-medium text-green-400">
+                                                {provider.api_key_short ? `${provider.api_key_short}…` : "Configured"}
+                                            </code>
+                                            {provider.api_key_id && (
+                                                <button
+                                                    onClick={() => handleDelete(provider.name, provider.api_key_id!)}
+                                                    disabled={deleting === provider.api_key_id}
+                                                    aria-label={`Delete API key for ${provider.name}`}
+                                                    className="shrink-0 cursor-pointer rounded-md p-1.5 text-ui-500 transition hover:bg-ui-800 hover:text-red-400 disabled:pointer-events-none disabled:opacity-50"
+                                                >
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <polyline points="3 6 5 6 21 6" />
+                                                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                                        <path d="M10 11v6" />
+                                                        <path d="M14 11v6" />
+                                                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                                                    </svg>
+                                                </button>
+                                            )}
+                                        </div>
                                     ) : (
                                         <span className="rounded-full bg-ui-800 px-2.5 py-0.5 text-xs font-medium text-ui-400">
                                             Not configured
                                         </span>
                                     )}
                                 </div>
-
-                                {provider.api_key_short && (
-                                    <div className="mt-2 flex items-center gap-2 text-xs text-ui-500">
-                                        <span>Current key:</span>
-                                        <code className="rounded bg-ui-800 px-1.5 py-0.5 font-mono text-ui-300">
-                                            {provider.api_key_short}…
-                                        </code>
-                                    </div>
-                                )}
 
                                 {!provider.api_key_configured && (
                                     <div className="mt-3 flex items-end gap-2">
