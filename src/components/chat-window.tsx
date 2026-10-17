@@ -230,6 +230,11 @@ export function ChatWindow({ messages, loading, greeting, greetingName, assistan
                         <div key={i} className="mb-6 flex gap-3">
                             <AssistantAvatar working={replying && i === messages.length - 1} />
                             <div className="min-w-0 max-w-none pt-1">
+                                {msg.assistantName && (
+                                    <div className="mb-1.5 truncate text-[11px] font-medium text-ui-500">
+                                        {msg.assistantName}
+                                    </div>
+                                )}
                                 {msg.blocks?.length ? (
                                     msg.blocks.map((block, j) =>
                                         block.type === "text" ? (
@@ -246,11 +251,6 @@ export function ChatWindow({ messages, loading, greeting, greetingName, assistan
                                     </div>
                                 )}
                                 {waiting && i === messages.length - 1 && <ThinkingIndicator />}
-                                {msg.assistantName && (
-                                    <div className="mt-1.5 truncate text-[11px] font-medium text-ui-500">
-                                        {msg.assistantName}
-                                    </div>
-                                )}
                             </div>
                         </div>
                     ),
