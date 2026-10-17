@@ -13,6 +13,12 @@ const PHRASES = [
     "Finding the rhythm",
     "Riffing",
     "Tinkering",
+    "Bajodling",
+    "Cerebrating",
+    "Melting the mainframe",
+    "Woolgathering",
+    "Churning butter",
+    "Grinding the gears"
 ]
 
 const PHRASE_INTERVAL_MS = 2800
