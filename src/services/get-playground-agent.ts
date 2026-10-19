@@ -23,6 +23,8 @@ export type AgentPayload = {
 
 export type Agent = AgentPayload & {
     id: string
+    // Legacy agents were stored unencrypted; saving them again encrypts them
+    is_encrypted: boolean
 }
 
 export async function getPlaygroundAgent(agentId: string): Promise<Agent> {

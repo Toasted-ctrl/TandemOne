@@ -152,6 +152,19 @@ export function AgentDetailsDialog({ agentId, mcps, offerings, providerConfigs, 
                 </div>
 
                 <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
+                    {agent && !agent.is_encrypted && (
+                        <div className="flex items-start gap-2.5 rounded-lg border border-amber-800 bg-amber-950 px-4 py-3 text-sm text-amber-300">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                                <path d="M12 9v4" />
+                                <path d="M12 17h.01" />
+                            </svg>
+                            <p>
+                                This agent was stored using a legacy format and isn't encrypted yet.
+                                Edit and save it again to encrypt it.
+                            </p>
+                        </div>
+                    )}
                     {error ? (
                         <p className="text-sm text-red-400">{error}</p>
                     ) : !agent ? (
@@ -166,6 +179,7 @@ export function AgentDetailsDialog({ agentId, mcps, offerings, providerConfigs, 
                                 onSave={handleSave}
                                 onCancel={cancelEditing}
                                 onDirtyChange={setDirty}
+                                allowUnchangedSave={!agent.is_encrypted}
                             />
                             {saveError && <p className="mt-3 text-xs text-red-400">{saveError}</p>}
                         </div>

@@ -103,37 +103,52 @@ export function SettingsKeysPage() {
                                 className="rounded-xl border border-ui-800 bg-ui-900 p-5"
                             >
                                 <div className="flex items-center justify-between">
-                                    <span className="text-sm font-medium text-ui-50">
-                                        {provider.name}
-                                    </span>
-                                    {provider.api_key_configured ? (
-                                        <div className="flex items-center gap-2">
-                                            <code className="rounded-full bg-green-900/50 px-2.5 py-0.5 font-mono text-xs font-medium text-green-400">
-                                                {provider.api_key_short ? `${provider.api_key_short}…` : "Configured"}
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-medium text-ui-50">
+                                            {provider.name}
+                                        </span>
+                                        {provider.api_key_configured && provider.api_key_short && (
+                                            <code className="font-mono text-xs text-ui-400">
+                                                {'// '}[{provider.api_key_short}…]
                                             </code>
-                                            {provider.api_key_id && (
-                                                <button
-                                                    onClick={() => handleDelete(provider.name, provider.api_key_id!)}
-                                                    disabled={deleting === provider.api_key_id}
-                                                    aria-label={`Delete API key for ${provider.name}`}
-                                                    className="shrink-0 cursor-pointer rounded-md p-1.5 text-ui-500 transition hover:bg-ui-800 hover:text-red-400 disabled:pointer-events-none disabled:opacity-50"
-                                                >
-                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                        <polyline points="3 6 5 6 21 6" />
-                                                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                                        <path d="M10 11v6" />
-                                                        <path d="M14 11v6" />
-                                                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                                                    </svg>
-                                                </button>
-                                            )}
-                                        </div>
+                                        )}
+                                    </div>
+                                    {provider.api_key_configured ? (
+                                        <span className="rounded-full bg-green-900/50 px-2.5 py-0.5 text-xs font-medium text-green-400">
+                                            Configured
+                                        </span>
                                     ) : (
                                         <span className="rounded-full bg-ui-800 px-2.5 py-0.5 text-xs font-medium text-ui-400">
                                             Not configured
                                         </span>
                                     )}
                                 </div>
+
+                                {provider.api_key_configured && (
+                                    <div className="mt-2 flex items-center justify-between">
+                                        {provider.api_key_expiry_date ? (
+                                            <ExpiryDate value={provider.api_key_expiry_date} />
+                                        ) : (
+                                            <span />
+                                        )}
+                                        {provider.api_key_id && (
+                                            <button
+                                                onClick={() => handleDelete(provider.name, provider.api_key_id!)}
+                                                disabled={deleting === provider.api_key_id}
+                                                aria-label={`Delete API key for ${provider.name}`}
+                                                className="shrink-0 cursor-pointer rounded-md p-1.5 text-ui-500 transition hover:bg-ui-800 hover:text-red-400 disabled:pointer-events-none disabled:opacity-50"
+                                            >
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <polyline points="3 6 5 6 21 6" />
+                                                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                                    <path d="M10 11v6" />
+                                                    <path d="M14 11v6" />
+                                                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                                                </svg>
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
 
                                 {!provider.api_key_configured && (
                                     <div className="mt-3 flex items-end gap-2">
@@ -165,5 +180,25 @@ export function SettingsKeysPage() {
             </div>
             </div>
         </div>
+    )
+}
+
+function ExpiryDate({ value }: { value: string }) {
+    const date = new Date(value)
+    if (isNaN(date.getTime())) return null
+
+    const expired = date.getTime() < Date.now()
+    const formatted = date.toLocaleString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    })
+
+    return (
+        <p className={`text-xs ${expired ? "text-red-400" : "text-ui-400"}`}>
+            {expired ? "Expired on" : "Expires on"} <time dateTime={value}>{formatted}</time>
+        </p>
     )
 }

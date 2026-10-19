@@ -6,6 +6,7 @@ export type ProviderConfiguration = {
     api_key_configured: boolean
     api_key_id: string | null
     api_key_short: string | null
+    api_key_expiry_date: string | null
 }
 
 
