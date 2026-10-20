@@ -375,6 +375,9 @@ export function MyDocumentsPage() {
                     skillId={selectedSkillId}
                     scope={TABS.skills.scope}
                     onClose={closeSkillDetails}
+                    onUpdated={updated => setStoredDocuments(prev =>
+                        prev.map(d => d.id === updated.skill_id ? { ...d, name: updated.name } : d)
+                    )}
                 />
             )}
         </div>
