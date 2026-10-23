@@ -160,6 +160,69 @@
     --grid-line: rgb(34 228 255 / 0.04);
 }
 
+/* Terminal: a polished phosphor-green console (monospace, square corners, faint scanlines) */
+:root.terminal {
+    --ui-50: #eafff1;
+    --ui-100: #d2f7de;
+    --ui-200: #b4e8c4;
+    --ui-300: #8ccea1;
+    --ui-400: #66a87c;
+    --ui-500: #4a8160;
+    --ui-600: #2f5a41;
+    --ui-700: #1e3a2a;
+    --ui-800: #13261b;
+    --ui-900: #0b1610;
+    --ui-950: #050806;
+
+    --brand-100: #dbffe8;
+    --brand-200: #a8ffc8;
+    --brand-300: #6bffa2;
+    --brand-400: #39ff88;
+    --brand-500: #1ee874;
+    --brand-600: #12c45f;
+
+    --color-flame-from: #39ff88;
+    --color-flame-to: #2de2e6;
+
+    --grid-line: rgb(57 255 136 / 0.035);
+
+    --font-sans: "JetBrains Mono", "Fira Code", "Cascadia Code", "SF Mono", Menlo, Consolas, ui-monospace, monospace;
+    /* Same face for code blocks, so they match the surrounding text */
+    --font-mono: var(--font-sans);
+
+    --radius-sm: 0;
+    --radius-md: 0;
+    --radius-lg: 0.125rem;
+    --radius-xl: 0.125rem;
+    --radius-2xl: 0.25rem;
+
+    ::selection {
+        background: rgb(57 255 136 / 0.3);
+        color: var(--ui-50);
+    }
+
+    /* Phosphor glow on headings */
+    h1, h2, h3 {
+        text-shadow: 0 0 8px rgb(57 255 136 / 0.35);
+    }
+
+    /* CRT scanlines over everything; purely decorative, never intercepts input */
+    body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+            to bottom,
+            rgb(0 0 0 / 0.18) 0,
+            rgb(0 0 0 / 0.18) 1px,
+            transparent 1px,
+            transparent 3px
+        );
+    }
+}
+
 body {
     @apply bg-ui-950 text-ui-200 antialiased;
 }

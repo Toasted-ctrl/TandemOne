@@ -4,6 +4,8 @@ export type Skill = {
     description: string
     instructions: string
     parameter_schema: Record<string, unknown>
+    // Legacy skills were stored unencrypted; saving them again encrypts them
+    is_encrypted: boolean
 }
 
 export async function getSkill(skillId: string, scope: string): Promise<Skill> {

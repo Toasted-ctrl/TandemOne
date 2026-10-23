@@ -2,13 +2,19 @@ import { useEffect, useState } from "react"
 import { AppHeader } from "../components/app-header"
 import { BackToSettingsLink } from "../components/back-to-settings-link"
 import { getProviderConfiguration, type ProviderConfiguration } from "../services/get-provider-configuration"
+import { deleteUserKey } from "../services/delete-user-key"
 import { saveUserKey } from "../services/save-user-key"
+
+const EXPIRY_OPTIONS = [30, 90, 180]
+const DEFAULT_EXPIRY_DAYS = EXPIRY_OPTIONS[0]
 
 export function SettingsKeysPage() {
     const [providers, setProviders] = useState<ProviderConfiguration[]>([])
     const [loading, setLoading] = useState(true)
     const [keyInputs, setKeyInputs] = useState<Record<string, string>>({})
+    const [expiryInputs, setExpiryInputs] = useState<Record<string, number>>({})
     const [saving, setSaving] = useState<string | null>(null)
+    const [deleting, setDeleting] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState<string | null>(null)
 
@@ -28,19 +34,38 @@ export function SettingsKeysPage() {
         const key = keyInputs[providerName]?.trim()
         if (!key) return
 
+        const expiryDays = expiryInputs[providerName] ?? DEFAULT_EXPIRY_DAYS
+
         setSaving(providerName)
         setError(null)
         setSuccess(null)
 
         try {
-            await saveUserKey(providerName, key)
+            await saveUserKey(providerName, key, expiryDays)
             setKeyInputs((prev) => ({ ...prev, [providerName]: "" }))
+            setExpiryInputs((prev) => ({ ...prev, [providerName]: DEFAULT_EXPIRY_DAYS }))
             setSuccess(`API key saved for ${providerName}`)
             loadProviders()
         } catch {
             setError(`Failed to save API key for ${providerName}`)
         } finally {
             setSaving(null)
+        }
+    }
+
+    async function handleDelete(providerName: string, keyId: string) {
+        setDeleting(keyId)
+        setError(null)
+        setSuccess(null)
+
+        try {
+            await deleteUserKey(keyId)
+            setSuccess(`API key deleted for ${providerName}`)
+            loadProviders()
+        } catch {
+            setError(`Failed to delete API key for ${providerName}`)
+        } finally {
+            setDeleting(null)
         }
     }
 
@@ -85,9 +110,16 @@ export function SettingsKeysPage() {
                                 className="rounded-xl border border-ui-800 bg-ui-900 p-5"
                             >
                                 <div className="flex items-center justify-between">
-                                    <span className="text-sm font-medium text-ui-50">
-                                        {provider.name}
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-medium text-ui-50">
+                                            {provider.name}
+                                        </span>
+                                        {provider.api_key_configured && provider.api_key_short && (
+                                            <code className="font-mono text-xs text-ui-400">
+                                                {'// '}[{provider.api_key_short}…]
+                                            </code>
+                                        )}
+                                    </div>
                                     {provider.api_key_configured ? (
                                         <span className="rounded-full bg-green-900/50 px-2.5 py-0.5 text-xs font-medium text-green-400">
                                             Configured
@@ -99,12 +131,29 @@ export function SettingsKeysPage() {
                                     )}
                                 </div>
 
-                                {provider.api_key_short && (
-                                    <div className="mt-2 flex items-center gap-2 text-xs text-ui-500">
-                                        <span>Current key:</span>
-                                        <code className="rounded bg-ui-800 px-1.5 py-0.5 font-mono text-ui-300">
-                                            {provider.api_key_short}…
-                                        </code>
+                                {provider.api_key_configured && (
+                                    <div className="mt-2 flex items-center justify-between">
+                                        {provider.api_key_expiry_date ? (
+                                            <ExpiryDate value={provider.api_key_expiry_date} />
+                                        ) : (
+                                            <span />
+                                        )}
+                                        {provider.api_key_id && (
+                                            <button
+                                                onClick={() => handleDelete(provider.name, provider.api_key_id!)}
+                                                disabled={deleting === provider.api_key_id}
+                                                aria-label={`Delete API key for ${provider.name}`}
+                                                className="shrink-0 cursor-pointer rounded-md p-1.5 text-ui-500 transition hover:bg-ui-800 hover:text-red-400 disabled:pointer-events-none disabled:opacity-50"
+                                            >
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <polyline points="3 6 5 6 21 6" />
+                                                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                                    <path d="M10 11v6" />
+                                                    <path d="M14 11v6" />
+                                                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                                                </svg>
+                                            </button>
+                                        )}
                                     </div>
                                 )}
 
@@ -122,6 +171,24 @@ export function SettingsKeysPage() {
                                             placeholder="Enter API key..."
                                             className="flex-1 rounded-lg border border-ui-700 bg-ui-800 px-3 py-2 text-sm text-ui-100 placeholder-ui-500 outline-none transition focus:border-ui-600 focus:ring-1 focus:ring-ui-600"
                                         />
+                                        <select
+                                            value={expiryInputs[provider.name] ?? DEFAULT_EXPIRY_DAYS}
+                                            onChange={(e) =>
+                                                setExpiryInputs((prev) => ({
+                                                    ...prev,
+                                                    [provider.name]: Number(e.target.value),
+                                                }))
+                                            }
+                                            title="Days until expiry"
+                                            aria-label={`Days until API key expiry for ${provider.name}`}
+                                            className="shrink-0 cursor-pointer rounded-lg border border-ui-700 bg-ui-800 px-3 py-2 text-sm text-ui-100 outline-none transition focus:border-ui-600 focus:ring-1 focus:ring-ui-600"
+                                        >
+                                            {EXPIRY_OPTIONS.map((days) => (
+                                                <option key={days} value={days}>
+                                                    {days} days
+                                                </option>
+                                            ))}
+                                        </select>
                                         <button
                                             onClick={() => handleSave(provider.name)}
                                             disabled={!keyInputs[provider.name]?.trim() || saving === provider.name}
@@ -138,5 +205,25 @@ export function SettingsKeysPage() {
             </div>
             </div>
         </div>
+    )
+}
+
+function ExpiryDate({ value }: { value: string }) {
+    const date = new Date(value)
+    if (isNaN(date.getTime())) return null
+
+    const expired = date.getTime() < Date.now()
+    const formatted = date.toLocaleString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    })
+
+    return (
+        <p className={`text-xs ${expired ? "text-red-400" : "text-ui-400"}`}>
+            {expired ? "Expired on" : "Expires on"} <time dateTime={value}>{formatted}</time>
+        </p>
     )
 }

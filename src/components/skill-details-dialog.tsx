@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { SkillForm } from './skill-form'
+import type { SkillPayload } from '../services/add-skill'
 import { getSkill, type Skill } from '../services/get-skill'
 import { updateSkill } from '../services/update-skill'
 
@@ -8,6 +10,7 @@ type SkillDetailsDialogProps = {
     skillId: string
     scope: string
     onClose: () => void
+    onUpdated?: (skill: Skill) => void
 }
 
 type SchemaProperty = {
@@ -38,49 +41,48 @@ function SectionHeading({ children }: { children: ReactNode }) {
     return <h3 className="text-xs font-medium uppercase tracking-wide text-ui-500">{children}</h3>
 }
 
-export function SkillDetailsDialog({ skillId, scope, onClose }: SkillDetailsDialogProps) {
+export function SkillDetailsDialog({ skillId, scope, onClose, onUpdated }: SkillDetailsDialogProps) {
     const [skill, setSkill] = useState<Skill | null>(null)
     const [error, setError] = useState<string | null>(null)
 
-    // null while viewing; holds the edited text while in edit mode
-    const [draftInstructions, setDraftInstructions] = useState<string | null>(null)
-    const [saving, setSaving] = useState(false)
+    const [editing, setEditing] = useState(false)
+    const [dirty, setDirty] = useState(false)
     const [saveError, setSaveError] = useState<string | null>(null)
 
-    const editing = draftInstructions !== null
-    const dirty = editing && skill !== null && draftInstructions !== skill.instructions
-    const canSave = dirty && draftInstructions.trim().length > 0 && !saving
+    const confirmDiscard = useCallback(
+        () => !dirty || window.confirm('Discard your unsaved changes to this skill?'),
+        [dirty]
+    )
 
     const requestClose = useCallback(() => {
-        if (dirty && !window.confirm('Discard your unsaved changes to the instructions?')) return
-        onClose()
-    }, [dirty, onClose])
+        if (confirmDiscard()) onClose()
+    }, [confirmDiscard, onClose])
 
     function startEditing() {
-        if (!skill) return
-        setDraftInstructions(skill.instructions)
         setSaveError(null)
+        setEditing(true)
     }
 
     function cancelEditing() {
-        setDraftInstructions(null)
+        if (!confirmDiscard()) return
+        setEditing(false)
+        setDirty(false)
         setSaveError(null)
     }
 
-    async function handleSave() {
-        if (!skill || !canSave) return
-        const instructions = draftInstructions.trim()
-
-        setSaving(true)
+    async function handleSave(payload: SkillPayload): Promise<boolean> {
+        if (!skill) return false
         setSaveError(null)
         try {
-            await updateSkill(scope, { skill_id: skill.skill_id, instructions })
-            setSkill({ ...skill, instructions })
-            setDraftInstructions(null)
+            const updated = await updateSkill(scope, { skill_id: skill.skill_id, ...payload })
+            setSkill(updated)
+            setEditing(false)
+            setDirty(false)
+            onUpdated?.(updated)
+            return true
         } catch (err) {
             setSaveError(err instanceof Error ? err.message : 'Failed to update skill')
-        } finally {
-            setSaving(false)
+            return false
         }
     }
 
@@ -127,22 +129,65 @@ export function SkillDetailsDialog({ skillId, scope, onClose }: SkillDetailsDial
                         </h2>
                         <p className="truncate text-xs text-ui-600">{skillId}</p>
                     </div>
-                    <button
-                        onClick={requestClose}
-                        aria-label="Close"
-                        className="flex shrink-0 cursor-pointer items-center justify-center rounded-lg p-1.5 text-ui-400 transition hover:bg-ui-800 hover:text-ui-200"
-                    >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M18 6L6 18M6 6l12 12" />
-                        </svg>
-                    </button>
+                    <div className="flex shrink-0 items-center gap-1">
+                        {skill && !editing && (
+                            <button
+                                onClick={startEditing}
+                                className="flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-ui-400 transition hover:bg-ui-800 hover:text-ui-200"
+                            >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M12 20h9" />
+                                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z" />
+                                </svg>
+                                Edit
+                            </button>
+                        )}
+                        <button
+                            onClick={requestClose}
+                            aria-label="Close"
+                            className="flex shrink-0 cursor-pointer items-center justify-center rounded-lg p-1.5 text-ui-400 transition hover:bg-ui-800 hover:text-ui-200"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M18 6L6 18M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
+                    {skill && !skill.is_encrypted && (
+                        <div className="flex items-start gap-2.5 rounded-lg border border-amber-800 bg-amber-950 px-4 py-3 text-sm text-amber-300">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                                <path d="M12 9v4" />
+                                <path d="M12 17h.01" />
+                            </svg>
+                            <p>
+                                This skill was stored using a legacy format and isn't encrypted yet.
+                                Edit and save it again to encrypt it.
+                            </p>
+                        </div>
+                    )}
                     {error ? (
                         <p className="text-sm text-red-400">{error}</p>
                     ) : !skill ? (
                         <p className="text-sm text-ui-500">Loading skill…</p>
+                    ) : editing ? (
+                        <div>
+                            <SkillForm
+                                initialSkill={{
+                                    name: skill.name,
+                                    description: skill.description,
+                                    skill_text: skill.instructions,
+                                    parameters_schema: skill.parameter_schema,
+                                }}
+                                onSave={handleSave}
+                                onCancel={cancelEditing}
+                                onDirtyChange={setDirty}
+                                allowUnchangedSave={!skill.is_encrypted}
+                            />
+                            {saveError && <p className="mt-3 text-xs text-red-400">{saveError}</p>}
+                        </div>
                     ) : (
                         <>
                             <section className="space-y-2">
@@ -151,57 +196,10 @@ export function SkillDetailsDialog({ skillId, scope, onClose }: SkillDetailsDial
                             </section>
 
                             <section className="space-y-2">
-                                <div className="flex items-center justify-between gap-2">
-                                    <SectionHeading>Instructions</SectionHeading>
-                                    {!editing && (
-                                        <button
-                                            onClick={startEditing}
-                                            className="flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-ui-400 transition hover:bg-ui-800 hover:text-ui-200"
-                                        >
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                <path d="M12 20h9" />
-                                                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z" />
-                                            </svg>
-                                            Edit
-                                        </button>
-                                    )}
+                                <SectionHeading>Instructions</SectionHeading>
+                                <div className="prose dark:prose-invert prose-sm max-w-none rounded-lg border border-ui-800 bg-ui-950/50 px-4 py-3 leading-relaxed text-ui-300">
+                                    <Markdown remarkPlugins={[remarkGfm]}>{skill.instructions}</Markdown>
                                 </div>
-                                {editing ? (
-                                    <div className="space-y-3">
-                                        <textarea
-                                            value={draftInstructions}
-                                            onChange={e => setDraftInstructions(e.target.value)}
-                                            onKeyDown={e => {
-                                                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleSave()
-                                            }}
-                                            aria-label="Instructions"
-                                            rows={12}
-                                            autoFocus
-                                            className="w-full resize-y rounded-lg border border-ui-700 bg-ui-800 px-3 py-2 text-sm text-ui-50 placeholder-ui-500 outline-none focus:border-ui-500 focus:ring-1 focus:ring-ui-500"
-                                        />
-                                        {saveError && <p className="text-xs text-red-400">{saveError}</p>}
-                                        <div className="flex items-center justify-end gap-2">
-                                            <button
-                                                onClick={cancelEditing}
-                                                disabled={saving}
-                                                className="cursor-pointer rounded-lg px-3 py-2 text-sm font-medium text-ui-400 transition hover:bg-ui-800 hover:text-ui-200 disabled:pointer-events-none disabled:opacity-50"
-                                            >
-                                                Cancel
-                                            </button>
-                                            <button
-                                                onClick={handleSave}
-                                                disabled={!canSave}
-                                                className="cursor-pointer rounded-lg border border-ui-700 bg-ui-800 px-3 py-2 text-sm font-medium text-ui-50 transition hover:border-ui-600 hover:bg-ui-700 disabled:pointer-events-none disabled:opacity-50"
-                                            >
-                                                {saving ? 'Saving…' : 'Save'}
-                                            </button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="prose dark:prose-invert prose-sm max-w-none rounded-lg border border-ui-800 bg-ui-950/50 px-4 py-3 leading-relaxed text-ui-300">
-                                        <Markdown remarkPlugins={[remarkGfm]}>{skill.instructions}</Markdown>
-                                    </div>
-                                )}
                             </section>
 
                             <section className="space-y-2">

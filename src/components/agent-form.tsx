@@ -19,13 +19,15 @@ type AgentFormProps = {
     initialAgent?: AgentPayload
     onCancel?: () => void
     onDirtyChange?: (dirty: boolean) => void
+    // Allows saving an existing agent without changes, e.g. to re-encrypt a legacy agent
+    allowUnchangedSave?: boolean
 }
 
 const inputClassName = 'mt-1.5 w-full rounded-lg border border-ui-700 bg-ui-800 px-3 py-2 text-sm text-ui-50 placeholder-ui-500 outline-none focus:border-ui-500 focus:ring-1 focus:ring-ui-500'
 
 const DEFAULT_PARAMETERS: ModelParameters = { temperature: null, top_p: null, top_k: null }
 
-export function AgentForm({ offerings, providerConfigs, mcps, onSave, initialAgent, onCancel, onDirtyChange }: AgentFormProps) {
+export function AgentForm({ offerings, providerConfigs, mcps, onSave, initialAgent, onCancel, onDirtyChange, allowUnchangedSave }: AgentFormProps) {
     // The create and edit forms can be in the DOM at the same time, so ids must be unique
     const idPrefix = useId()
     const [name, setName] = useState(initialAgent?.name ?? '')
@@ -86,7 +88,7 @@ export function AgentForm({ offerings, providerConfigs, mcps, onSave, initialAge
     }, [provider, model])
 
     const canSave =
-        (!initialAgent || dirty) &&
+        (!initialAgent || dirty || allowUnchangedSave) &&
         name.trim().length > 0 &&
         systemPrompt.trim().length > 0 &&
         !!provider &&
