@@ -18,7 +18,32 @@ const PHRASES = [
     "Melting the mainframe",
     "Woolgathering",
     "Churning butter",
-    "Grinding the gears"
+    "Grinding the gears",
+    "Ruminating",
+    "Cogitating",
+    "Percolating",
+    "Chewing on it",
+    "Stewing",
+    "Simmering",
+    "Marinating",
+    "Distilling",
+    "Wracking the noggin",
+    "Puzzling it out",
+    "Reticulating splines",
+    "Overclocking",
+    "Defragging the brain",
+    "Greasing the wheels",
+    "Spinning plates",
+    "Untangling the yarn",
+    "Wrestling the muse",
+    "Consulting the oracle",
+    "Reading the tea leaves",
+    "Hemming and hawing",
+    "Confabulating",
+    "Frobnicating",
+    "Photosynthesizing",
+    "Feeding the idea hamster",
+    "Herding thoughts"
 ]
 
 const PHRASE_INTERVAL_MS = 2800

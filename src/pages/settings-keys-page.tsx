@@ -5,10 +5,14 @@ import { getProviderConfiguration, type ProviderConfiguration } from "../service
 import { deleteUserKey } from "../services/delete-user-key"
 import { saveUserKey } from "../services/save-user-key"
 
+const EXPIRY_OPTIONS = [30, 90, 180]
+const DEFAULT_EXPIRY_DAYS = EXPIRY_OPTIONS[0]
+
 export function SettingsKeysPage() {
     const [providers, setProviders] = useState<ProviderConfiguration[]>([])
     const [loading, setLoading] = useState(true)
     const [keyInputs, setKeyInputs] = useState<Record<string, string>>({})
+    const [expiryInputs, setExpiryInputs] = useState<Record<string, number>>({})
     const [saving, setSaving] = useState<string | null>(null)
     const [deleting, setDeleting] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
@@ -30,13 +34,16 @@ export function SettingsKeysPage() {
         const key = keyInputs[providerName]?.trim()
         if (!key) return
 
+        const expiryDays = expiryInputs[providerName] ?? DEFAULT_EXPIRY_DAYS
+
         setSaving(providerName)
         setError(null)
         setSuccess(null)
 
         try {
-            await saveUserKey(providerName, key)
+            await saveUserKey(providerName, key, expiryDays)
             setKeyInputs((prev) => ({ ...prev, [providerName]: "" }))
+            setExpiryInputs((prev) => ({ ...prev, [providerName]: DEFAULT_EXPIRY_DAYS }))
             setSuccess(`API key saved for ${providerName}`)
             loadProviders()
         } catch {
@@ -164,6 +171,24 @@ export function SettingsKeysPage() {
                                             placeholder="Enter API key..."
                                             className="flex-1 rounded-lg border border-ui-700 bg-ui-800 px-3 py-2 text-sm text-ui-100 placeholder-ui-500 outline-none transition focus:border-ui-600 focus:ring-1 focus:ring-ui-600"
                                         />
+                                        <select
+                                            value={expiryInputs[provider.name] ?? DEFAULT_EXPIRY_DAYS}
+                                            onChange={(e) =>
+                                                setExpiryInputs((prev) => ({
+                                                    ...prev,
+                                                    [provider.name]: Number(e.target.value),
+                                                }))
+                                            }
+                                            title="Days until expiry"
+                                            aria-label={`Days until API key expiry for ${provider.name}`}
+                                            className="shrink-0 cursor-pointer rounded-lg border border-ui-700 bg-ui-800 px-3 py-2 text-sm text-ui-100 outline-none transition focus:border-ui-600 focus:ring-1 focus:ring-ui-600"
+                                        >
+                                            {EXPIRY_OPTIONS.map((days) => (
+                                                <option key={days} value={days}>
+                                                    {days} days
+                                                </option>
+                                            ))}
+                                        </select>
                                         <button
                                             onClick={() => handleSave(provider.name)}
                                             disabled={!keyInputs[provider.name]?.trim() || saving === provider.name}
