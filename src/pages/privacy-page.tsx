@@ -25,7 +25,7 @@ const sections: LegalSection[] = [
     },
     {
         title: "6. Cookies and local storage",
-        body: "We use a session cookie to keep you signed in. Your theme preference (light, dark, funky or system) is stored in your browser's local storage. We do not use advertising or third-party analytics cookies.",
+        body: "We use a session cookie to keep you signed in. Your theme preference (light, dark, funky, terminal or system) is stored in your browser's local storage. We do not use advertising or third-party analytics cookies.",
     },
     {
         title: "7. Data retention and deletion",
