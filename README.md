@@ -39,7 +39,7 @@ React 19, TypeScript, Tailwind CSS v4 (with the typography plugin), Vite, React 
 
 ### Development
 
-Create a `.env` file in the project root:
+Copy `.env.example` to `.env` in the project root and fill in your values:
 
 ```sh
 VITE_API_KEY=your-api-key

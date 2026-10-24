@@ -23,15 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
-# Other files
-eslint.config.js
-index.html
-package-lock.json
-package.json
-tsconfig.app.json
-tsconfig.json
-tsconfig.node.json
-vite.config.ts
+# Environment
 .env
 
 # K8s
