@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import type { ProvidersOffering } from "../services/get-models"
+import type { ModelCapability, ProvidersOffering } from "../services/get-models"
 import type { ProviderConfiguration } from "../services/get-provider-configuration"
 
 type ChatModelSelectorProps = {
@@ -10,6 +10,8 @@ type ChatModelSelectorProps = {
     onSelect: (provider: string, model: string) => void
     // Which side of the button the menu opens on
     placement?: "up" | "down"
+    // Which kind of models to offer
+    capability?: ModelCapability
 }
 
 export function ChatModelSelector({
@@ -19,6 +21,7 @@ export function ChatModelSelector({
     selectedModel,
     onSelect,
     placement = "up",
+    capability = "chat_completion",
 }: ChatModelSelectorProps) {
     const [open, setOpen] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -73,7 +76,7 @@ export function ChatModelSelector({
             {open && (
                 <div className={`absolute left-0 z-50 ${placement === "up" ? "bottom-full mb-1.5" : "top-full mt-1.5"} max-h-72 min-w-56 overflow-y-auto rounded-xl border border-ui-700/50 bg-ui-900 py-1.5 shadow-xl shadow-black/10 dark:shadow-black/50`}>
                     {allProviderNames.map((providerName) => {
-                        const models = offerings.providers[providerName]?.chat_completion ?? []
+                        const models = offerings.providers[providerName]?.[capability] ?? []
                         const config = providerConfigs.find((p) => p.name === providerName)
                         const needsKey = config?.requires_api_key && !config.api_key_configured
 

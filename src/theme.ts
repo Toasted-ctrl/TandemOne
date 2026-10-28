@@ -3,7 +3,7 @@ import { useState } from "react"
 export type ThemePreference = "light" | "dark" | "funky" | "terminal" | "system"
 
 const STORAGE_KEY = "theme"
-const THEME_COLORS = { light: "#f6f5f2", dark: "#0a0a0b", funky: "#12052a", terminal: "#050806" }
+const THEME_COLORS = { light: "#f6f5f2", dark: "#0a0a0b", funky: "#12052a", terminal: "#110c08" }
 // Styled themes are dark variants: each gets its own class on <html> on top of `.dark`
 const STYLED_THEMES = ["funky", "terminal"] as const
 const darkQuery = window.matchMedia("(prefers-color-scheme: dark)")

@@ -2,7 +2,11 @@ export type ProviderModels = {
     chat_completion: string[]
     translation: string[]
     vector_embedding: string[]
+    system_one: string[]
 }
+
+
+export type ModelCapability = keyof ProviderModels
 
 
 export type ProvidersOffering = {

@@ -12,7 +12,7 @@
       // Apply the saved theme before first paint to avoid a light/dark flash (see src/theme.ts)
       (function () {
         var t = localStorage.getItem('theme')
-        var styled = { funky: '#12052a', terminal: '#050806' }[t]
+        var styled = { funky: '#12052a', terminal: '#110c08' }[t]
         var dark = !!styled || t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
         if (dark) document.documentElement.classList.add('dark')
         if (styled) document.documentElement.classList.add(t)

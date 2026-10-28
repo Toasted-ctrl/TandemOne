@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AgentDetailsDialog } from '../components/agent-details-dialog'
 import { AgentForm } from '../components/agent-form'
 import { AppHeader } from '../components/app-header'
+import { DecisionAgentForm } from '../components/decision-agent-form'
 import { createPlaygroundAgent } from '../services/create-playground-agent'
 import { deletePlaygroundAgent } from '../services/delete-playground-agent'
 import { getAgents, type AgentSummary } from '../services/get-agents'
@@ -11,6 +12,13 @@ import { getProviderModels, type ProvidersOffering } from '../services/get-model
 import type { Agent, AgentPayload } from '../services/get-playground-agent'
 import { getProviderConfiguration, type ProviderConfiguration } from '../services/get-provider-configuration'
 import { getUser } from '../services/get-user'
+
+type Tab = 'agents' | 'decision'
+
+const TABS: Record<Tab, { label: string; addLabel: string }> = {
+    agents: { label: 'Agents', addLabel: 'Create an agent' },
+    decision: { label: 'Decision agents', addLabel: 'Create a decision agent' },
+}
 
 // Matches Tailwind's `sm` breakpoint; the add panel starts expanded on wider screens only
 const WIDE_SCREEN_QUERY = '(min-width: 640px)'
@@ -28,6 +36,14 @@ function AgentIcon() {
 
 export function PlaygroundPage() {
     const navigate = useNavigate()
+    // The active tab lives in the URL (?tab=decision) so it survives a refresh
+    const [searchParams, setSearchParams] = useSearchParams()
+    const tabParam = searchParams.get('tab')
+    const tab: Tab = tabParam !== null && Object.hasOwn(TABS, tabParam) ? tabParam as Tab : 'agents'
+
+    function setTab(next: Tab) {
+        setSearchParams({ tab: next }, { replace: true })
+    }
     const [addPanelOpen, setAddPanelOpen] = useState(() => window.matchMedia(WIDE_SCREEN_QUERY).matches)
 
     const [offerings, setOfferings] = useState<ProvidersOffering | null>(null)
@@ -98,7 +114,23 @@ export function PlaygroundPage() {
                         Create and manage your own agents, each with its own model, tools and instructions.
                     </p>
 
-                    <div className="mt-8 rounded-xl border border-ui-800 bg-ui-900">
+                    <div className="mt-8 flex gap-1 rounded-lg bg-ui-900 p-1 border border-ui-800">
+                        {(Object.keys(TABS) as Tab[]).map(key => (
+                            <button
+                                key={key}
+                                onClick={() => setTab(key)}
+                                className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition ${
+                                    tab === key
+                                        ? 'bg-ui-800 text-ui-50'
+                                        : 'text-ui-400 hover:text-ui-200'
+                                }`}
+                            >
+                                {TABS[key].label}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="mt-4 rounded-xl border border-ui-800 bg-ui-900">
                         <button
                             onClick={() => setAddPanelOpen(open => !open)}
                             aria-expanded={addPanelOpen}
@@ -109,7 +141,7 @@ export function PlaygroundPage() {
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-ui-500">
                                     <path d="M12 5v14M5 12h14" />
                                 </svg>
-                                Create an agent
+                                {TABS[tab].addLabel}
                             </span>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 text-ui-500 transition-transform duration-200 ${addPanelOpen ? 'rotate-180' : ''}`}>
                                 <polyline points="6 9 12 15 18 9" />
@@ -117,56 +149,64 @@ export function PlaygroundPage() {
                         </button>
                         {/* Hidden rather than unmounted so in-progress input survives collapsing */}
                         <div id="add-panel" className={`border-t border-ui-800/60 px-6 pb-6 pt-4 ${addPanelOpen ? '' : 'hidden'}`}>
-                            <AgentForm
-                                offerings={offerings}
-                                providerConfigs={providerConfigs}
-                                mcps={mcps}
-                                onSave={handleSave}
-                            />
-                            {saveError && <p className="mt-3 text-xs text-red-400">{saveError}</p>}
+                            {/* Both forms stay mounted so switching tabs keeps in-progress input */}
+                            <div className={tab === 'agents' ? '' : 'hidden'}>
+                                <AgentForm
+                                    offerings={offerings}
+                                    providerConfigs={providerConfigs}
+                                    mcps={mcps}
+                                    onSave={handleSave}
+                                />
+                                {saveError && <p className="mt-3 text-xs text-red-400">{saveError}</p>}
+                            </div>
+                            <div className={tab === 'decision' ? '' : 'hidden'}>
+                                <DecisionAgentForm offerings={offerings} providerConfigs={providerConfigs} />
+                            </div>
                         </div>
                     </div>
 
-                    <div className="mt-6 space-y-2">
-                        <h2 className="text-sm font-medium text-ui-400">Your agents</h2>
-                        {agentsLoading ? (
-                            <p className="text-xs text-ui-500">Loading…</p>
-                        ) : agents.length === 0 ? (
-                            <p className="text-xs text-ui-500">You haven't created any agents yet.</p>
-                        ) : (
-                            agents.map(agent => (
-                                <div
-                                    key={agent.id}
-                                    className="flex items-center gap-3 rounded-lg border border-ui-800 bg-ui-900 px-4 py-3"
-                                >
-                                    <button
-                                        onClick={() => setSelectedAgentId(agent.id)}
-                                        className="group flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left"
+                    {tab === 'agents' && (
+                        <div className="mt-6 space-y-2">
+                            <h2 className="text-sm font-medium text-ui-400">Your agents</h2>
+                            {agentsLoading ? (
+                                <p className="text-xs text-ui-500">Loading…</p>
+                            ) : agents.length === 0 ? (
+                                <p className="text-xs text-ui-500">You haven't created any agents yet.</p>
+                            ) : (
+                                agents.map(agent => (
+                                    <div
+                                        key={agent.id}
+                                        className="flex items-center gap-3 rounded-lg border border-ui-800 bg-ui-900 px-4 py-3"
                                     >
-                                        <AgentIcon />
-                                        <div className="min-w-0 flex-1">
-                                            <p className="truncate text-sm text-ui-50 group-hover:text-brand-300">{agent.name}</p>
-                                            <p className="truncate text-xs text-ui-600" title={agent.id}>{agent.id.length > 18 ? `${agent.id.slice(0, 18)}...` : agent.id}</p>
-                                        </div>
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(agent.id)}
-                                        disabled={deletingIds.has(agent.id)}
-                                        aria-label={`Delete ${agent.name}`}
-                                        className="shrink-0 cursor-pointer rounded-md p-1.5 text-ui-500 transition hover:bg-ui-800 hover:text-red-400 disabled:pointer-events-none disabled:opacity-50"
-                                    >
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <polyline points="3 6 5 6 21 6" />
-                                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                            <path d="M10 11v6" />
-                                            <path d="M14 11v6" />
-                                            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            ))
-                        )}
-                    </div>
+                                        <button
+                                            onClick={() => setSelectedAgentId(agent.id)}
+                                            className="group flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left"
+                                        >
+                                            <AgentIcon />
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate text-sm text-ui-50 group-hover:text-brand-300">{agent.name}</p>
+                                                <p className="truncate text-xs text-ui-600" title={agent.id}>{agent.id.length > 18 ? `${agent.id.slice(0, 18)}...` : agent.id}</p>
+                                            </div>
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(agent.id)}
+                                            disabled={deletingIds.has(agent.id)}
+                                            aria-label={`Delete ${agent.name}`}
+                                            className="shrink-0 cursor-pointer rounded-md p-1.5 text-ui-500 transition hover:bg-ui-800 hover:text-red-400 disabled:pointer-events-none disabled:opacity-50"
+                                        >
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <polyline points="3 6 5 6 21 6" />
+                                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                                <path d="M10 11v6" />
+                                                <path d="M14 11v6" />
+                                                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 
