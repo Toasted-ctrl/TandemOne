@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ChatPage } from './pages/chat-page'
+import { DecisionsPage } from './pages/decisions-page'
 import { LoginPage } from './pages/login-page'
 import { SettingsPage } from './pages/settings-page'
 import { SettingsKeysPage } from './pages/settings-keys-page'
@@ -34,6 +35,7 @@ function App() {
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/chat" element={<ChatPage />} />
+                <Route path="/decisions" element={<DecisionsPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/settings/keys" element={<SettingsKeysPage />} />
                 <Route path="/settings/personal" element={<SettingsPersonalPage />} />

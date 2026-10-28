@@ -9,6 +9,7 @@ import { getProviderModels, type ProvidersOffering } from "../services/get-model
 import { getProviderConfiguration, type ProviderConfiguration } from "../services/get-provider-configuration"
 import { getMcps, type Mcp } from "../services/get-mcps"
 import { getModelSampling, type ModelSamplingSupport } from "../services/get-model-sampling"
+import { getPlaygroundAgent, type Agent } from "../services/get-playground-agent"
 import { getUser, type User } from "../services/get-user"
 import { streamAgent, type ModelParameters } from "../services/stream-agent"
 
@@ -61,6 +62,8 @@ export function ChatPage() {
     // Null until the list is first fetched
     const [agents, setAgents] = useState<AgentSummary[] | null>(null)
     const [agentId, setAgentId] = useState<string | null>(null)
+    // Details of the selected agent; may briefly belong to the previous selection while the next one loads
+    const [agentDetails, setAgentDetails] = useState<Agent | null>(null)
     const [mcps, setMcps] = useState<Mcp[]>([])
     const [selectedMcps, setSelectedMcps] = useState<string[]>([])
     const [userVsFiles, setUserVsFiles] = useState(false)
@@ -105,6 +108,17 @@ export function ChatPage() {
         return () => { cancelled = true }
     }, [provider, model])
 
+    useEffect(() => {
+        if (!agentId) return
+
+        let cancelled = false
+        getPlaygroundAgent(agentId)
+            .then((res) => { if (!cancelled) setAgentDetails(res) })
+            // The description is only extra context, so chatting still works without it
+            .catch(console.error)
+        return () => { cancelled = true }
+    }, [agentId])
+
     function handleModeChange(next: ChatMode) {
         setMode(next)
         if (next !== "agent") return
@@ -124,6 +138,7 @@ export function ChatPage() {
 
     const agentName = agents?.find((a) => a.id === agentId)?.name
     const assistantName = mode === "agent" ? agentName : model || undefined
+    const assistantDescription = mode === "agent" && agentDetails?.id === agentId ? agentDetails.description : null
 
     async function handleSend() {
         const text = input.trim()
@@ -283,6 +298,7 @@ export function ChatPage() {
                 greeting={user ? greeting(user.first_name) : undefined}
                 greetingName={user?.first_name}
                 assistantName={assistantName}
+                assistantDescription={assistantDescription}
             />
 
             <ChatInput

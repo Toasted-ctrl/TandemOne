@@ -6,9 +6,12 @@ type ChatAgentSelectorProps = {
     agents: AgentSummary[] | null
     selectedAgentId: string | null
     onSelect: (agentId: string) => void
+    placement?: "up" | "down"
+    // Heading of the dropdown list
+    label?: string
 }
 
-export function ChatAgentSelector({ agents, selectedAgentId, onSelect }: ChatAgentSelectorProps) {
+export function ChatAgentSelector({ agents, selectedAgentId, onSelect, placement = "up", label = "Agents" }: ChatAgentSelectorProps) {
     const [open, setOpen] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
 
@@ -53,9 +56,9 @@ export function ChatAgentSelector({ agents, selectedAgentId, onSelect }: ChatAge
             </button>
 
             {open && (
-                <div className="absolute bottom-full left-0 z-50 mb-1.5 max-h-72 min-w-56 overflow-y-auto rounded-xl border border-ui-700/50 bg-ui-900 py-1.5 shadow-xl shadow-black/10 dark:shadow-black/50">
+                <div className={`absolute left-0 z-50 ${placement === "up" ? "bottom-full mb-1.5" : "top-full mt-1.5"} max-h-72 min-w-56 overflow-y-auto rounded-xl border border-ui-700/50 bg-ui-900 py-1.5 shadow-xl shadow-black/10 dark:shadow-black/50`}>
                     <div className="px-3 pt-2 pb-1 text-[11px] font-medium tracking-wide text-ui-500 uppercase">
-                        Agents
+                        {label}
                     </div>
                     {agents === null ? (
                         <div className="px-3 py-1.5 pl-8 text-xs text-ui-600 italic">Loading agents...</div>

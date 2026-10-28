@@ -37,6 +37,8 @@ type ChatWindowProps = {
     // Highlighted within the greeting
     greetingName?: string
     assistantName?: string
+    // Shown under the assistant name before the conversation starts
+    assistantDescription?: string | null
 }
 
 function AssistantAvatar({ working }: { working?: boolean }) {
@@ -182,7 +184,7 @@ function ToolCallBlock({ block }: { block: ToolBlock }) {
     )
 }
 
-export function ChatWindow({ messages, loading, greeting, greetingName, assistantName }: ChatWindowProps) {
+export function ChatWindow({ messages, loading, greeting, greetingName, assistantName, assistantDescription }: ChatWindowProps) {
     const bottomRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -204,9 +206,16 @@ export function ChatWindow({ messages, loading, greeting, greetingName, assistan
                     <Greeting text={greeting || "Hello!"} name={greetingName} />
                 </p>
                 {assistantName ? (
-                    <p className="max-w-[90%] truncate text-base text-ui-400">
-                        Chatting with <span className="font-semibold text-brand-400">{assistantName}</span>
-                    </p>
+                    <>
+                        <p className="max-w-[90%] truncate text-base text-ui-400">
+                            Chatting with <span className="font-semibold text-brand-400">{assistantName}</span>
+                        </p>
+                        {assistantDescription && (
+                            <p className="line-clamp-3 max-w-xl text-sm text-ui-500" title={assistantDescription}>
+                                {assistantDescription}
+                            </p>
+                        )}
+                    </>
                 ) : (
                     <p className="text-base text-ui-400">
                         Select a model below to start chatting.

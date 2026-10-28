@@ -27,7 +27,7 @@ function Pill({ children }: { children: ReactNode }) {
     return <span className="rounded bg-ui-800 px-2 py-0.5 text-xs text-ui-300">{children}</span>
 }
 
-function QuestionDetails({ question }: { question: DecisionQuestion }) {
+export function QuestionDetails({ question }: { question: DecisionQuestion }) {
     return (
         <div className="space-y-2 px-4 py-3">
             <div className="flex items-center justify-between gap-3">
