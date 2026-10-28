@@ -3,10 +3,14 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AgentDetailsDialog } from '../components/agent-details-dialog'
 import { AgentForm } from '../components/agent-form'
 import { AppHeader } from '../components/app-header'
+import { DecisionAgentDetailsDialog } from '../components/decision-agent-details-dialog'
 import { DecisionAgentForm } from '../components/decision-agent-form'
+import { createDecisionAgent } from '../services/create-decision-agent'
 import { createPlaygroundAgent } from '../services/create-playground-agent'
+import { deleteDecisionAgent } from '../services/delete-decision-agent'
 import { deletePlaygroundAgent } from '../services/delete-playground-agent'
 import { getAgents, type AgentSummary } from '../services/get-agents'
+import type { DecisionAgent, DecisionAgentPayload } from '../services/get-decision-agent'
 import { getMcps, type Mcp } from '../services/get-mcps'
 import { getProviderModels, type ProvidersOffering } from '../services/get-models'
 import type { Agent, AgentPayload } from '../services/get-playground-agent'
@@ -15,9 +19,19 @@ import { getUser } from '../services/get-user'
 
 type Tab = 'agents' | 'decision'
 
-const TABS: Record<Tab, { label: string; addLabel: string }> = {
-    agents: { label: 'Agents', addLabel: 'Create an agent' },
-    decision: { label: 'Decision agents', addLabel: 'Create a decision agent' },
+const TABS: Record<Tab, { label: string; addLabel: string; listLabel: string; emptyLabel: string }> = {
+    agents: {
+        label: 'Agents',
+        addLabel: 'Create an agent',
+        listLabel: 'Your agents',
+        emptyLabel: "You haven't created any agents yet.",
+    },
+    decision: {
+        label: 'Decision agents',
+        addLabel: 'Create a decision agent',
+        listLabel: 'Your decision agents',
+        emptyLabel: "You haven't created any decision agents yet.",
+    },
 }
 
 // Matches Tailwind's `sm` breakpoint; the add panel starts expanded on wider screens only
@@ -31,6 +45,61 @@ function AgentIcon() {
             <circle cx="12" cy="3" r="1" />
             <path d="M9 13v2M15 13v2" />
         </svg>
+    )
+}
+
+type AgentListProps = {
+    heading: string
+    emptyLabel: string
+    agents: AgentSummary[]
+    loading: boolean
+    deletingIds: Set<string>
+    onSelect: (agentId: string) => void
+    onDelete: (agentId: string) => void
+}
+
+function AgentList({ heading, emptyLabel, agents, loading, deletingIds, onSelect, onDelete }: AgentListProps) {
+    return (
+        <div className="mt-6 space-y-2">
+            <h2 className="text-sm font-medium text-ui-400">{heading}</h2>
+            {loading ? (
+                <p className="text-xs text-ui-500">Loading…</p>
+            ) : agents.length === 0 ? (
+                <p className="text-xs text-ui-500">{emptyLabel}</p>
+            ) : (
+                agents.map(agent => (
+                    <div
+                        key={agent.id}
+                        className="flex items-center gap-3 rounded-lg border border-ui-800 bg-ui-900 px-4 py-3"
+                    >
+                        <button
+                            onClick={() => onSelect(agent.id)}
+                            className="group flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left"
+                        >
+                            <AgentIcon />
+                            <div className="min-w-0 flex-1">
+                                <p className="truncate text-sm text-ui-50 group-hover:text-brand-300">{agent.name}</p>
+                                <p className="truncate text-xs text-ui-600" title={agent.id}>{agent.id.length > 18 ? `${agent.id.slice(0, 18)}...` : agent.id}</p>
+                            </div>
+                        </button>
+                        <button
+                            onClick={() => onDelete(agent.id)}
+                            disabled={deletingIds.has(agent.id)}
+                            aria-label={`Delete ${agent.name}`}
+                            className="shrink-0 cursor-pointer rounded-md p-1.5 text-ui-500 transition hover:bg-ui-800 hover:text-red-400 disabled:pointer-events-none disabled:opacity-50"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                <path d="M10 11v6" />
+                                <path d="M14 11v6" />
+                                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                            </svg>
+                        </button>
+                    </div>
+                ))
+            )}
+        </div>
     )
 }
 
@@ -60,6 +129,15 @@ export function PlaygroundPage() {
         setAgents(prev => prev.map(a => (a.id === updated.id ? { ...a, name: updated.name } : a)))
     }, [])
 
+    const [decisionAgents, setDecisionAgents] = useState<AgentSummary[]>([])
+    const [decisionAgentsLoading, setDecisionAgentsLoading] = useState(true)
+    const [decisionSaveError, setDecisionSaveError] = useState<string | null>(null)
+    const [selectedDecisionAgentId, setSelectedDecisionAgentId] = useState<string | null>(null)
+    const closeDecisionAgentDetails = useCallback(() => setSelectedDecisionAgentId(null), [])
+    const handleDecisionAgentUpdated = useCallback((updated: DecisionAgent) => {
+        setDecisionAgents(prev => prev.map(a => (a.id === updated.id ? { ...a, name: updated.name } : a)))
+    }, [])
+
     useEffect(() => {
         getUser().catch(() => navigate('/login', { replace: true }))
     }, [navigate])
@@ -69,10 +147,14 @@ export function PlaygroundPage() {
         getProviderConfiguration().then(res => setProviderConfigs(res.providers)).catch(console.error)
         getMcps().then(res => setMcps(res.mcps)).catch(console.error)
         // The playground only manages agents the user owns
-        getAgents('User Owned')
+        getAgents('User Owned', 'Conversational')
             .then(res => setAgents(res.agents))
             .catch(() => setAgents([]))
             .finally(() => setAgentsLoading(false))
+        getAgents('User Owned', 'Decision')
+            .then(res => setDecisionAgents(res.agents))
+            .catch(() => setDecisionAgents([]))
+            .finally(() => setDecisionAgentsLoading(false))
     }, [])
 
     async function handleSave(payload: AgentPayload): Promise<boolean> {
@@ -88,11 +170,29 @@ export function PlaygroundPage() {
         }
     }
 
-    async function handleDelete(agentId: string) {
+    async function handleDecisionSave(payload: DecisionAgentPayload): Promise<boolean> {
+        setDecisionSaveError(null)
+        try {
+            const agent = await createDecisionAgent(payload)
+            setDecisionAgents(prev => [...prev, { id: agent.id, name: agent.name }])
+            setAddPanelOpen(false)
+            return true
+        } catch (err) {
+            setDecisionSaveError(err instanceof Error ? err.message : 'Save failed')
+            return false
+        }
+    }
+
+    async function handleDelete(agentId: string, agentType: Tab) {
         setDeletingIds(prev => new Set(prev).add(agentId))
         try {
-            await deletePlaygroundAgent(agentId)
-            setAgents(prev => prev.filter(a => a.id !== agentId))
+            if (agentType === 'decision') {
+                await deleteDecisionAgent(agentId)
+                setDecisionAgents(prev => prev.filter(a => a.id !== agentId))
+            } else {
+                await deletePlaygroundAgent(agentId)
+                setAgents(prev => prev.filter(a => a.id !== agentId))
+            }
         } catch {
             // leave the item in place so the user can retry
         } finally {
@@ -160,52 +260,36 @@ export function PlaygroundPage() {
                                 {saveError && <p className="mt-3 text-xs text-red-400">{saveError}</p>}
                             </div>
                             <div className={tab === 'decision' ? '' : 'hidden'}>
-                                <DecisionAgentForm offerings={offerings} providerConfigs={providerConfigs} />
+                                <DecisionAgentForm
+                                    offerings={offerings}
+                                    providerConfigs={providerConfigs}
+                                    onSave={handleDecisionSave}
+                                />
+                                {decisionSaveError && <p className="mt-3 text-xs text-red-400">{decisionSaveError}</p>}
                             </div>
                         </div>
                     </div>
 
-                    {tab === 'agents' && (
-                        <div className="mt-6 space-y-2">
-                            <h2 className="text-sm font-medium text-ui-400">Your agents</h2>
-                            {agentsLoading ? (
-                                <p className="text-xs text-ui-500">Loading…</p>
-                            ) : agents.length === 0 ? (
-                                <p className="text-xs text-ui-500">You haven't created any agents yet.</p>
-                            ) : (
-                                agents.map(agent => (
-                                    <div
-                                        key={agent.id}
-                                        className="flex items-center gap-3 rounded-lg border border-ui-800 bg-ui-900 px-4 py-3"
-                                    >
-                                        <button
-                                            onClick={() => setSelectedAgentId(agent.id)}
-                                            className="group flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left"
-                                        >
-                                            <AgentIcon />
-                                            <div className="min-w-0 flex-1">
-                                                <p className="truncate text-sm text-ui-50 group-hover:text-brand-300">{agent.name}</p>
-                                                <p className="truncate text-xs text-ui-600" title={agent.id}>{agent.id.length > 18 ? `${agent.id.slice(0, 18)}...` : agent.id}</p>
-                                            </div>
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(agent.id)}
-                                            disabled={deletingIds.has(agent.id)}
-                                            aria-label={`Delete ${agent.name}`}
-                                            className="shrink-0 cursor-pointer rounded-md p-1.5 text-ui-500 transition hover:bg-ui-800 hover:text-red-400 disabled:pointer-events-none disabled:opacity-50"
-                                        >
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                <polyline points="3 6 5 6 21 6" />
-                                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                                <path d="M10 11v6" />
-                                                <path d="M14 11v6" />
-                                                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                ))
-                            )}
-                        </div>
+                    {tab === 'agents' ? (
+                        <AgentList
+                            heading={TABS.agents.listLabel}
+                            emptyLabel={TABS.agents.emptyLabel}
+                            agents={agents}
+                            loading={agentsLoading}
+                            deletingIds={deletingIds}
+                            onSelect={setSelectedAgentId}
+                            onDelete={agentId => handleDelete(agentId, 'agents')}
+                        />
+                    ) : (
+                        <AgentList
+                            heading={TABS.decision.listLabel}
+                            emptyLabel={TABS.decision.emptyLabel}
+                            agents={decisionAgents}
+                            loading={decisionAgentsLoading}
+                            deletingIds={deletingIds}
+                            onSelect={setSelectedDecisionAgentId}
+                            onDelete={agentId => handleDelete(agentId, 'decision')}
+                        />
                     )}
                 </div>
             </div>
@@ -219,6 +303,17 @@ export function PlaygroundPage() {
                     providerConfigs={providerConfigs}
                     onClose={closeAgentDetails}
                     onUpdated={handleAgentUpdated}
+                />
+            )}
+
+            {selectedDecisionAgentId && (
+                <DecisionAgentDetailsDialog
+                    key={selectedDecisionAgentId}
+                    agentId={selectedDecisionAgentId}
+                    offerings={offerings}
+                    providerConfigs={providerConfigs}
+                    onClose={closeDecisionAgentDetails}
+                    onUpdated={handleDecisionAgentUpdated}
                 />
             )}
         </div>

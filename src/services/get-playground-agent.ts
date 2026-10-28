@@ -16,6 +16,7 @@ export type AgentTools = {
 
 export type AgentPayload = {
     name: string
+    description: string | null
     model: AgentModel
     system_prompt: string
     tools: AgentTools

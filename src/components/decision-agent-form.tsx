@@ -1,52 +1,46 @@
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { ChatModelSelector } from './chat-model-selector'
+import type { DecisionAgentPayload, DecisionQuestion, DecisionState } from '../services/get-decision-agent'
 import type { ProvidersOffering } from '../services/get-models'
 import type { ProviderConfiguration } from '../services/get-provider-configuration'
 
 type DecisionAgentFormProps = {
     offerings: ProvidersOffering | null
     providerConfigs: ProviderConfiguration[]
+    onSave: (agent: DecisionAgentPayload) => Promise<boolean>
+    // When set, the form edits this agent instead of creating a new one
+    initialAgent?: DecisionAgentPayload
+    onCancel?: () => void
+    onDirtyChange?: (dirty: boolean) => void
 }
 
-type QuestionType = 'choice' | 'score' | 'noul'
+type QuestionType = DecisionQuestion['type']
 
-// The shape a decision model expects for each entry under `questions`
-export type DecisionQuestion =
-    | { type: 'choice'; instructions: string; criteria: Record<string, string> }
-    | { type: 'score'; instructions: string; criteria: string[] }
-    | { type: 'noul'; instructions: string }
+type EntryDraft = { id: number; label: string }
 
-type ChoiceDraft = { id: number; key: string; description: string }
-type LevelDraft = { id: number; label: string }
-
-// Choices and levels are kept separately so switching type doesn't discard input
+// Options and levels are kept separately so switching type doesn't discard input
 type QuestionDraft = {
     id: number
     name: string
     type: QuestionType
     instructions: string
-    choices: ChoiceDraft[]
-    levels: LevelDraft[]
+    options: EntryDraft[]
+    levels: EntryDraft[]
 }
 
 const QUESTION_TYPES: Record<QuestionType, { label: string; hint: string }> = {
     choice: { label: 'Choice', hint: 'Pick one of a set of named options.' },
-    score: { label: 'Score', hint: 'Place the answer on an ordered scale, lowest first.' },
-    noul: { label: 'Noul', hint: 'Answer with no criteria needed.' },
+    score: { label: 'Score', hint: 'Rate on an ordered scale, lowest first. Levels are numbered from 0.' },
+    noul: { label: 'Noul', hint: 'Answer with a single value between 0 and 1.' },
 }
 
-type StateType = 'text' | 'fields'
+type StateType = DecisionState['type']
 
-// Tells callers what to send as `state`: a single string, or an object with these keys
-export type DecisionStateSpec =
-    | { type: 'text'; description: string }
-    | { type: 'fields'; fields: Record<string, string> }
-
-type StateFieldDraft = { id: number; key: string; description: string }
+type StateFieldDraft = { id: number; name: string; description: string }
 
 const STATE_TYPES: Record<StateType, { label: string; hint: string }> = {
     text: { label: 'Text', hint: 'Callers send state as a single string.' },
-    fields: { label: 'Fields', hint: 'Callers send state as an object with these keys.' },
+    fields: { label: 'Fields', hint: 'Callers send state as an object with these named fields.' },
 }
 
 const inputClassName ='mt-1.5 w-full rounded-lg border border-ui-700 bg-ui-800 px-3 py-2 text-sm text-ui-50 placeholder-ui-500 outline-none focus:border-ui-500 focus:ring-1 focus:ring-ui-500'
@@ -55,55 +49,87 @@ const smallButtonClassName = 'cursor-pointer rounded-lg px-2.5 py-1.5 text-xs fo
 
 let nextDraftId = 0
 
+function toEntryDrafts(labels: string[]): EntryDraft[] {
+    return labels.map(label => ({ id: nextDraftId++, label }))
+}
+
+// Choice and score questions need at least two entries, so new questions start with two blank rows
 function newQuestion(): QuestionDraft {
     return {
         id: nextDraftId++,
         name: '',
         type: 'choice',
         instructions: '',
-        choices: [{ id: nextDraftId++, key: '', description: '' }],
-        levels: [{ id: nextDraftId++, label: '' }],
+        options: toEntryDrafts(['', '']),
+        levels: toEntryDrafts(['', '']),
     }
 }
 
-// Converts drafts into the `questions` object, skipping unnamed questions and blank criteria rows
-function buildDecisionQuestions(drafts: QuestionDraft[]): Record<string, DecisionQuestion> {
-    const questions: Record<string, DecisionQuestion> = {}
-    for (const draft of drafts) {
-        const name = draft.name.trim()
-        if (!name) continue
-        const instructions = draft.instructions.trim()
+function toQuestionDraft(question: DecisionQuestion): QuestionDraft {
+    return {
+        ...newQuestion(),
+        name: question.name,
+        type: question.type,
+        instructions: question.instructions,
+        ...(question.type === 'choice' && { options: toEntryDrafts(question.options) }),
+        ...(question.type === 'score' && { levels: toEntryDrafts(question.legend) }),
+    }
+}
 
-        if (draft.type === 'choice') {
-            const criteria: Record<string, string> = {}
-            for (const choice of draft.choices) {
-                if (choice.key.trim()) criteria[choice.key.trim()] = choice.description.trim()
-            }
-            questions[name] = { type: 'choice', instructions, criteria }
-        } else if (draft.type === 'score') {
-            const criteria = draft.levels.map(l => l.label.trim()).filter(Boolean)
-            questions[name] = { type: 'score', instructions, criteria }
-        } else {
-            questions[name] = { type: 'noul', instructions }
+function newStateField(): StateFieldDraft {
+    return { id: nextDraftId++, name: '', description: '' }
+}
+
+function filledLabels(entries: EntryDraft[]): string[] {
+    return entries.map(e => e.label.trim()).filter(Boolean)
+}
+
+// Blank option and level rows are dropped
+function buildQuestion(draft: QuestionDraft): DecisionQuestion {
+    const base = { name: draft.name.trim(), instructions: draft.instructions.trim() }
+    if (draft.type === 'choice') return { ...base, type: 'choice', options: filledLabels(draft.options) }
+    if (draft.type === 'score') return { ...base, type: 'score', legend: filledLabels(draft.levels) }
+    return { ...base, type: 'noul' }
+}
+
+// Blank field rows are dropped; the backend rejects fields on 'text' state
+function buildState(type: StateType, description: string, fields: StateFieldDraft[]): DecisionState {
+    return {
+        type,
+        description: description.trim() || null,
+        fields: type === 'fields'
+            ? fields
+                .filter(f => f.name.trim())
+                .map(f => ({ name: f.name.trim(), description: f.description.trim() || null }))
+            : [],
+    }
+}
+
+function hasDuplicates(values: string[]): boolean {
+    return new Set(values).size !== values.length
+}
+
+// Mirrors the backend's validation so the save button only enables for payloads it accepts
+function findProblem(payload: DecisionAgentPayload): string | null {
+    if (!payload.name) return 'Give the agent a name.'
+    if (!payload.model.provider || !payload.model.name) return 'Pick a model.'
+    if (payload.state.type === 'fields') {
+        if (payload.state.fields.length === 0) return 'Add at least one state field.'
+        if (hasDuplicates(payload.state.fields.map(f => f.name))) return 'State field names must be unique.'
+    }
+    if (payload.questions.length === 0) return 'Add at least one question.'
+    for (const [i, question] of payload.questions.entries()) {
+        const label = `Question ${i + 1}`
+        if (!question.name) return `${label} needs a name.`
+        if (!question.instructions) return `${label} needs instructions.`
+        if (question.type === 'choice') {
+            if (question.options.length < 2) return `${label} needs at least two options.`
+            if (hasDuplicates(question.options)) return `${label} has duplicate options.`
         }
+        if (question.type === 'score' && question.legend.length < 2) return `${label} needs at least two levels.`
     }
-    return questions
-}
-
-function buildStateSpec(type: StateType, description: string, fields: StateFieldDraft[]): DecisionStateSpec {
-    if (type === 'text') return { type: 'text', description: description.trim() }
-
-    const spec: Record<string, string> = {}
-    for (const field of fields) {
-        if (field.key.trim()) spec[field.key.trim()] = field.description.trim()
-    }
-    return { type: 'fields', fields: spec }
-}
-
-// Shows callers what a matching `state` value looks like
-function buildStateExample(spec: DecisionStateSpec): string | Record<string, string> {
-    if (spec.type === 'text') return spec.description ? `<${spec.description}>` : '<text>'
-    return Object.fromEntries(Object.entries(spec.fields).map(([key, description]) => [key, `<${description || key}>`]))
+    if (hasDuplicates(payload.questions.map(q => q.name))) return 'Question names must be unique.'
+    return null
 }
 
 function SegmentedToggle<T extends string>({ options, value, onChange }: {
@@ -158,8 +184,8 @@ function QuestionEditor({ question, index, duplicateName, onChange, onRemove }: 
         onChange({ ...question, ...patch })
     }
 
-    function updateChoice(id: number, patch: Partial<ChoiceDraft>) {
-        update({ choices: question.choices.map(c => (c.id === id ? { ...c, ...patch } : c)) })
+    function updateOption(id: number, label: string) {
+        update({ options: question.options.map(o => (o.id === id ? { ...o, label } : o)) })
     }
 
     function updateLevel(id: number, label: string) {
@@ -213,33 +239,25 @@ function QuestionEditor({ question, index, duplicateName, onChange, onRemove }: 
                 <div>
                     <span className="block text-xs font-medium text-ui-300">Options</span>
                     <div className="mt-1.5 space-y-1.5">
-                        {question.choices.map((choice, i) => (
-                            <div key={choice.id} className="flex items-center gap-1.5">
+                        {question.options.map((option, i) => (
+                            <div key={option.id} className="flex items-center gap-1.5">
                                 <input
                                     type="text"
-                                    value={choice.key}
-                                    onChange={e => updateChoice(choice.id, { key: e.target.value })}
+                                    value={option.label}
+                                    onChange={e => updateOption(option.id, e.target.value)}
                                     placeholder="e.g. refund"
-                                    aria-label={`Option ${i + 1} key`}
-                                    className={`${rowInputClassName} max-w-40`}
-                                />
-                                <input
-                                    type="text"
-                                    value={choice.description}
-                                    onChange={e => updateChoice(choice.id, { description: e.target.value })}
-                                    placeholder="e.g. Refund in full"
-                                    aria-label={`Option ${i + 1} description`}
+                                    aria-label={`Option ${i + 1}`}
                                     className={rowInputClassName}
                                 />
                                 <RemoveButton
                                     label={`Remove option ${i + 1}`}
-                                    onClick={() => update({ choices: question.choices.filter(c => c.id !== choice.id) })}
+                                    onClick={() => update({ options: question.options.filter(o => o.id !== option.id) })}
                                 />
                             </div>
                         ))}
                     </div>
                     <button
-                        onClick={() => update({ choices: [...question.choices, { id: nextDraftId++, key: '', description: '' }] })}
+                        onClick={() => update({ options: [...question.options, ...toEntryDrafts([''])] })}
                         className={`mt-1.5 ${smallButtonClassName}`}
                     >
                         + Add option
@@ -253,24 +271,24 @@ function QuestionEditor({ question, index, duplicateName, onChange, onRemove }: 
                     <div className="mt-1.5 space-y-1.5">
                         {question.levels.map((level, i) => (
                             <div key={level.id} className="flex items-center gap-1.5">
-                                <span className="w-5 shrink-0 text-right text-xs text-ui-500">{i + 1}.</span>
+                                <span className="w-5 shrink-0 text-right text-xs text-ui-500">{i}.</span>
                                 <input
                                     type="text"
                                     value={level.label}
                                     onChange={e => updateLevel(level.id, e.target.value)}
                                     placeholder="e.g. routine"
-                                    aria-label={`Level ${i + 1}`}
+                                    aria-label={`Level ${i}`}
                                     className={rowInputClassName}
                                 />
                                 <RemoveButton
-                                    label={`Remove level ${i + 1}`}
+                                    label={`Remove level ${i}`}
                                     onClick={() => update({ levels: question.levels.filter(l => l.id !== level.id) })}
                                 />
                             </div>
                         ))}
                     </div>
                     <button
-                        onClick={() => update({ levels: [...question.levels, { id: nextDraftId++, label: '' }] })}
+                        onClick={() => update({ levels: [...question.levels, ...toEntryDrafts([''])] })}
                         className={`mt-1.5 ${smallButtonClassName}`}
                     >
                         + Add level
@@ -281,44 +299,74 @@ function QuestionEditor({ question, index, duplicateName, onChange, onRemove }: 
     )
 }
 
-export function DecisionAgentForm({ offerings, providerConfigs }: DecisionAgentFormProps) {
-    // The create and edit forms may later be in the DOM together, so ids must be unique
+export function DecisionAgentForm({ offerings, providerConfigs, onSave, initialAgent, onCancel, onDirtyChange }: DecisionAgentFormProps) {
+    // The create and edit forms can be in the DOM together, so ids must be unique
     const idPrefix = useId()
-    const [name, setName] = useState('')
-    const [description, setDescription] = useState('')
-    const [provider, setProvider] = useState('')
-    const [model, setModel] = useState('')
-    const [stateType, setStateType] = useState<StateType>('text')
-    const [stateDescription, setStateDescription] = useState('')
-    const [stateFields, setStateFields] = useState<StateFieldDraft[]>(() => [{ id: nextDraftId++, key: '', description: '' }])
-    const [questions, setQuestions] = useState<QuestionDraft[]>(() => [newQuestion()])
+    const [name, setName] = useState(initialAgent?.name ?? '')
+    const [description, setDescription] = useState(initialAgent?.description ?? '')
+    const [provider, setProvider] = useState(initialAgent?.model.provider ?? '')
+    const [model, setModel] = useState(initialAgent?.model.name ?? '')
+    const [stateType, setStateType] = useState<StateType>(initialAgent?.state.type ?? 'text')
+    const [stateDescription, setStateDescription] = useState(initialAgent?.state.description ?? '')
+    const [stateFields, setStateFields] = useState<StateFieldDraft[]>(() =>
+        initialAgent?.state.fields.length
+            ? initialAgent.state.fields.map(f => ({ id: nextDraftId++, name: f.name, description: f.description ?? '' }))
+            : [newStateField()]
+    )
+    const [questions, setQuestions] = useState<QuestionDraft[]>(() =>
+        initialAgent ? initialAgent.questions.map(toQuestionDraft) : [newQuestion()]
+    )
+    const [saving, setSaving] = useState(false)
 
-    const stateSpec = buildStateSpec(stateType, stateDescription, stateFields)
+    function buildPayload(): DecisionAgentPayload {
+        return {
+            name: name.trim(),
+            description: description.trim() || null,
+            model: { provider, name: model },
+            state: buildState(stateType, stateDescription, stateFields),
+            questions: questions.map(buildQuestion),
+        }
+    }
+
+    const payload = buildPayload()
+    const [initialSnapshot] = useState(() => JSON.stringify(payload))
+    const dirty = JSON.stringify(payload) !== initialSnapshot
+
+    useEffect(() => {
+        onDirtyChange?.(dirty)
+    }, [dirty, onDirtyChange])
 
     function updateStateField(id: number, patch: Partial<StateFieldDraft>) {
         setStateFields(prev => prev.map(f => (f.id === id ? { ...f, ...patch } : f)))
     }
 
-    // Names are keys in the `questions` object, so they must be unique
     const nameCounts = new Map<string, number>()
     for (const q of questions) {
         const name = q.name.trim()
         if (name) nameCounts.set(name, (nameCounts.get(name) ?? 0) + 1)
     }
 
-    const [saveNotice, setSaveNotice] = useState(false)
+    const problem = findProblem(payload)
+    const canSave = (!initialAgent || dirty) && problem === null
 
-    const canSave =
-        name.trim().length > 0 &&
-        !!provider &&
-        !!model &&
-        nameCounts.size > 0 &&
-        [...nameCounts.values()].every(count => count === 1)
-
-    // TODO: Send the decision agent to the backend once the endpoint exists
-    function handleSave() {
+    async function handleSave() {
         if (!canSave) return
-        setSaveNotice(true)
+
+        setSaving(true)
+        const saved = await onSave(payload)
+        setSaving(false)
+
+        // An edit form is closed by its owner after saving, so only the create form resets
+        if (saved && !initialAgent) {
+            setName('')
+            setDescription('')
+            setProvider('')
+            setModel('')
+            setStateType('text')
+            setStateDescription('')
+            setStateFields([newStateField()])
+            setQuestions([newQuestion()])
+        }
     }
 
     return (
@@ -381,26 +429,25 @@ export function DecisionAgentForm({ offerings, providerConfigs }: DecisionAgentF
                 </p>
                 <SegmentedToggle options={STATE_TYPES} value={stateType} onChange={setStateType} />
                 <p className="mt-1.5 text-xs text-ui-500">{STATE_TYPES[stateType].hint}</p>
-                {stateType === 'text' ? (
-                    <textarea
-                        value={stateDescription}
-                        onChange={e => setStateDescription(e.target.value)}
-                        placeholder="e.g. The support ticket text, including when the order was placed and whether it has shipped."
-                        aria-label="State description"
-                        rows={2}
-                        className={`${inputClassName} resize-y`}
-                    />
-                ) : (
+                <textarea
+                    value={stateDescription}
+                    onChange={e => setStateDescription(e.target.value)}
+                    placeholder="e.g. The support ticket text, including when the order was placed and whether it has shipped."
+                    aria-label="State description"
+                    rows={2}
+                    className={`${inputClassName} resize-y`}
+                />
+                {stateType === 'fields' && (
                     <div className="mt-1.5">
                         <div className="space-y-1.5">
                             {stateFields.map((field, i) => (
                                 <div key={field.id} className="flex items-center gap-1.5">
                                     <input
                                         type="text"
-                                        value={field.key}
-                                        onChange={e => updateStateField(field.id, { key: e.target.value })}
+                                        value={field.name}
+                                        onChange={e => updateStateField(field.id, { name: e.target.value })}
                                         placeholder="e.g. expectations"
-                                        aria-label={`Field ${i + 1} key`}
+                                        aria-label={`Field ${i + 1} name`}
                                         className={`${rowInputClassName} max-w-40`}
                                     />
                                     <input
@@ -419,7 +466,7 @@ export function DecisionAgentForm({ offerings, providerConfigs }: DecisionAgentF
                             ))}
                         </div>
                         <button
-                            onClick={() => setStateFields(prev => [...prev, { id: nextDraftId++, key: '', description: '' }])}
+                            onClick={() => setStateFields(prev => [...prev, newStateField()])}
                             className={`mt-1.5 ${smallButtonClassName}`}
                         >
                             + Add field
@@ -453,15 +500,15 @@ export function DecisionAgentForm({ offerings, providerConfigs }: DecisionAgentF
                 </button>
             </div>
             <details>
-                <summary className="cursor-pointer text-xs font-medium text-ui-400 hover:text-ui-200">Preview example request</summary>
+                <summary className="cursor-pointer text-xs font-medium text-ui-400 hover:text-ui-200">Preview configuration</summary>
                 <pre className="mt-1.5 max-h-72 overflow-auto rounded-lg border border-ui-700 bg-ui-800 p-3 text-xs text-ui-300">
-                    {JSON.stringify({ state: buildStateExample(stateSpec), questions: buildDecisionQuestions(questions) }, null, 2)}
+                    {JSON.stringify(payload, null, 2)}
                 </pre>
             </details>
             <div className="flex flex-wrap items-center gap-3">
                 <button
                     onClick={handleSave}
-                    disabled={!canSave}
+                    disabled={!canSave || saving}
                     className="flex cursor-pointer items-center gap-2 rounded-xl border border-ui-800 bg-ui-900 px-4 py-2.5 text-sm font-medium text-ui-300 transition hover:border-ui-700 hover:bg-ui-800/60 hover:text-ui-50 disabled:pointer-events-none disabled:opacity-50"
                 >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -469,11 +516,18 @@ export function DecisionAgentForm({ offerings, providerConfigs }: DecisionAgentF
                         <polyline points="17 21 17 13 7 13 7 21" />
                         <polyline points="7 3 7 8 15 8" />
                     </svg>
-                    Save decision agent
+                    {saving ? 'Saving…' : initialAgent ? 'Save changes' : 'Save decision agent'}
                 </button>
-                {saveNotice && (
-                    <p className="text-xs text-amber-400">Saving decision agents isn't available yet, so nothing was saved.</p>
+                {onCancel && (
+                    <button
+                        onClick={onCancel}
+                        disabled={saving}
+                        className="cursor-pointer rounded-lg px-3 py-2 text-sm font-medium text-ui-400 transition hover:bg-ui-800 hover:text-ui-200 disabled:pointer-events-none disabled:opacity-50"
+                    >
+                        Cancel
+                    </button>
                 )}
+                {problem && <p className="text-xs text-ui-500">{problem}</p>}
             </div>
         </div>
     )

@@ -110,7 +110,7 @@ export function ChatPage() {
         if (next !== "agent") return
 
         // Refetch on every switch so newly created or shared agents show up
-        getAgents("All")
+        getAgents("All", "Conversational")
             .then((res) => {
                 setAgents(res.agents)
                 // Drop the selection if the agent is no longer available

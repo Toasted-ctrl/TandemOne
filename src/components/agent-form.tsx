@@ -31,6 +31,7 @@ export function AgentForm({ offerings, providerConfigs, mcps, onSave, initialAge
     // The create and edit forms can be in the DOM at the same time, so ids must be unique
     const idPrefix = useId()
     const [name, setName] = useState(initialAgent?.name ?? '')
+    const [description, setDescription] = useState(initialAgent?.description ?? '')
     const [systemPrompt, setSystemPrompt] = useState(initialAgent?.system_prompt ?? '')
     const [provider, setProvider] = useState(initialAgent?.model.provider ?? '')
     const [model, setModel] = useState(initialAgent?.model.name ?? '')
@@ -49,6 +50,7 @@ export function AgentForm({ offerings, providerConfigs, mcps, onSave, initialAge
     function buildPayload(): AgentPayload {
         return {
             name: name.trim(),
+            description: description.trim() || null,
             system_prompt: systemPrompt.trim(),
             model: { provider, name: model, parameters },
             tools: {
@@ -104,6 +106,7 @@ export function AgentForm({ offerings, providerConfigs, mcps, onSave, initialAge
         // An edit form is closed by its owner after saving, so only the create form resets
         if (saved && !initialAgent) {
             setName('')
+            setDescription('')
             setSystemPrompt('')
             setProvider('')
             setModel('')
@@ -130,6 +133,19 @@ export function AgentForm({ offerings, providerConfigs, mcps, onSave, initialAge
                     onChange={e => setName(e.target.value)}
                     placeholder="e.g. Research assistant"
                     className={inputClassName}
+                />
+            </div>
+            <div>
+                <label htmlFor={`${idPrefix}-description`} className="block text-sm font-medium text-ui-300">
+                    Description <span className="font-normal text-ui-500">(optional)</span>
+                </label>
+                <textarea
+                    id={`${idPrefix}-description`}
+                    value={description}
+                    onChange={e => setDescription(e.target.value)}
+                    placeholder="What is this agent for, and when should it be used?"
+                    rows={2}
+                    className={`${inputClassName} resize-y`}
                 />
             </div>
             <div>

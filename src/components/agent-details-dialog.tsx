@@ -185,6 +185,10 @@ export function AgentDetailsDialog({ agentId, mcps, offerings, providerConfigs, 
                         </div>
                     ) : (
                         <>
+                            {agent.description && (
+                                <p className="whitespace-pre-wrap text-sm text-ui-300">{agent.description}</p>
+                            )}
+
                             <section className="space-y-2">
                                 <SectionHeading>Model</SectionHeading>
                                 <p className="text-sm text-ui-300">

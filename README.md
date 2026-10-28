@@ -5,7 +5,8 @@ A web-based AI chat frontend for [SynapseAPI](https://github.com/Toasted-ctrl/ai
 ## Features
 
 - **Multi-provider chat** — stream responses from any configured provider and model, with adjustable sampling (temperature, top-p, top-k). Only the settings the selected model supports are offered.
-- **Agents** — build your own agents in the Playground: a name, a system prompt, a model with sampling settings, and a set of tools. Agents can be viewed, edited and deleted later. In the chat, switch between talking to a model directly or to one of your agents; an agent always brings its own model and tools.
+- **Agents** — build your own agents in the Playground: a name, an optional description, a system prompt, a model with sampling settings, and a set of tools. Agents can be viewed, edited and deleted later. In the chat, switch between talking to a model directly or to one of your agents; an agent always brings its own model and tools.
+- **Decision agents** — also in the Playground: agents on a System One model that answer a fixed set of choice, score and noul questions about a state that callers send, either as a single string or as named fields. Decision agents can be viewed, edited and deleted later.
 - **Tool use** — MCP tools, web search, and search over your own files, memories and skills. Tool calls and their results are shown inline in the conversation and can be expanded to see the details.
 - **Web search** — opt-in per conversation; off by default and clearly highlighted when enabled.
 - **My documents** — upload files (PDF, DOCX, TXT, MD, CSV) or save text memories to a personal vector store for retrieval.
