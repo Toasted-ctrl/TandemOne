@@ -4,15 +4,15 @@ A web-based AI chat frontend for [SynapseAPI](https://github.com/Toasted-ctrl/ai
 
 ## Features
 
-- **Multi-provider chat** — stream responses from any configured provider and model, with adjustable sampling (temperature, top-p, top-k). Only the settings the selected model supports are offered.
-- **Agents** — build your own agents in the Playground: a name, an optional description, a system prompt, a model with sampling settings, and a set of tools. Agents can be viewed, edited and deleted later. In the chat, switch between talking to a model directly or to one of your agents; an agent always brings its own model and tools.
+- **Multi-provider chat** — stream responses from any configured provider and model, with adjustable sampling (temperature, top-p, top-k). Only the settings the selected model supports are offered. Code blocks are syntax highlighted in colours that follow the theme, and each has a copy button.
+- **Chat agents** — build your own agents in the Playground's Chat agents tab: a name, an optional description, a system prompt, a model with sampling settings, and a set of tools. Agents can be viewed, edited and deleted later. In the chat, switch between talking to a model directly or to one of your agents; an agent always brings its own model and tools.
 - **Decision agents** — also in the Playground: agents on a System One model that answer a fixed set of choice, score and noul questions about a state that callers send, either as a single string or as named fields. Decision agents can be viewed, edited and deleted later.
 - **Decisions** — pick one of your decision agents on its own page and fill in the state it asks for. The inputs follow the agent's state definition, so the state always has the shape the agent expects.
 - **Tool use** — MCP tools, web search, and search over your own files, memories and skills. Tool calls and their results are shown inline in the conversation and can be expanded to see the details.
 - **Web search** — opt-in per conversation; off by default and clearly highlighted when enabled.
 - **My documents** — upload files (PDF, DOCX, TXT, MD, CSV) or save text memories to a personal vector store for retrieval.
 - **Skills** — write reusable instructions for your models and agents. Skill descriptions are indexed so they can be discovered through vector search, and instructions can be edited in place.
-- **Settings** — view your account details, manage provider API keys, and pick a light, dark, funky or system theme.
+- **Settings** — view your account details, manage provider API keys, and pick a light, dark, funky, terminal or system theme.
 - **Google login** — authentication via Google OAuth.
 
 <table>
@@ -30,7 +30,7 @@ A web-based AI chat frontend for [SynapseAPI](https://github.com/Toasted-ctrl/ai
 
 ## Tech stack
 
-React 19, TypeScript, Tailwind CSS v4 (with the typography plugin), Vite, React Router. Markdown is rendered with `react-markdown` + `remark-gfm`; text is extracted from uploads client-side with `pdfjs-dist` and `mammoth`.
+React 19, TypeScript, Tailwind CSS v4 (with the typography plugin), Vite, React Router. Markdown is rendered with `react-markdown` + `remark-gfm`, with code highlighted by `rehype-highlight`; text is extracted from uploads client-side with `pdfjs-dist` and `mammoth`.
 
 ## Getting started
 
@@ -102,7 +102,7 @@ REGISTRY=your-registry.example.com:5000 ./build.sh minor    # or: major
 src/
 ├── components/      UI components (chat window and toolbar, selectors, agent and skill forms, dialogs)
 ├── features/auth/   Google OAuth login
-├── pages/           Route pages (chat, login, my documents, playground, settings)
+├── pages/           Route pages (chat, decisions, login, my documents, playground, settings, privacy, terms)
 ├── services/        API clients, one per endpoint (streaming chat, agents, skills, documents, providers, user)
-└── theme.ts         Light / dark / funky / system theme handling
+└── theme.ts         Light / dark / funky / terminal / system theme handling
 ```
