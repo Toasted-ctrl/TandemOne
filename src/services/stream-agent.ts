@@ -87,7 +87,7 @@ export async function streamAgent(
     const applicationKey = import.meta.env.VITE_API_KEY
 
     const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/v1/conversation/stream`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/v1/inference/conversation/stream`,
         {
             method: "POST",
             headers: {

@@ -231,7 +231,7 @@ export function ChatWindow({ messages, loading, greeting, greetingName, assistan
                 {messages.map((msg, i) =>
                     msg.role === "user" ? (
                         <div key={i} className="mb-6 flex justify-end">
-                            <div className="max-w-[75%] whitespace-pre-wrap rounded-xl rounded-br-sm border border-brand-500/30 bg-brand-500/10 px-4 py-2.5 text-sm leading-relaxed text-ui-100">
+                            <div className="max-w-[75%] whitespace-pre-wrap break-words rounded-xl rounded-br-sm border border-brand-500/30 bg-brand-500/10 px-4 py-2.5 text-sm leading-relaxed text-ui-100">
                                 {msg.content}
                             </div>
                         </div>
@@ -247,7 +247,7 @@ export function ChatWindow({ messages, loading, greeting, greetingName, assistan
                                 {msg.blocks?.length ? (
                                     msg.blocks.map((block, j) =>
                                         block.type === "text" ? (
-                                            <div key={j} className="prose dark:prose-invert prose-sm leading-relaxed text-ui-300">
+                                            <div key={j} className="prose dark:prose-invert prose-sm break-words leading-relaxed text-ui-300">
                                                 <Markdown remarkPlugins={[remarkGfm]}>{block.text}</Markdown>
                                             </div>
                                         ) : (
@@ -255,7 +255,7 @@ export function ChatWindow({ messages, loading, greeting, greetingName, assistan
                                         ),
                                     )
                                 ) : (
-                                    <div className="prose dark:prose-invert prose-sm leading-relaxed text-ui-300">
+                                    <div className="prose dark:prose-invert prose-sm break-words leading-relaxed text-ui-300">
                                         <Markdown remarkPlugins={[remarkGfm]}>{msg.content}</Markdown>
                                     </div>
                                 )}

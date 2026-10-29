@@ -6,10 +6,10 @@ export type User = {
 
 
 export async function getUser(): Promise<User> {
-    console.log("Calling /api/v1/auth/me")
+    console.log("Calling /api/v1/user/me")
     const applicationKey = import.meta.env.VITE_API_KEY
     const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/me`, {
+        `${import.meta.env.VITE_API_BASE_URL}/api/v1/user/me`, {
             headers: {
                 'X-API-Key': applicationKey
             },

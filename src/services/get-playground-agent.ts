@@ -32,7 +32,7 @@ export async function getPlaygroundAgent(agentId: string): Promise<Agent> {
     const applicationKey = import.meta.env.VITE_API_KEY
     const params = new URLSearchParams({ agent_id: agentId })
     const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/v1/playground/agent?${params}`, {
+        `${import.meta.env.VITE_API_BASE_URL}/api/v1/playground/conversational-agent?${params}`, {
             headers: {
                 'X-API-Key': applicationKey
             },
