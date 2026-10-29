@@ -14,11 +14,10 @@ export function SettingsPersonalPage() {
             .catch(() => navigate("/login", { replace: true }))
     }, [navigate])
 
-    const fields = user
+    const nameFields = user
         ? [
             { label: "First name", value: user.first_name },
             { label: "Last name", value: user.last_name },
-            { label: "User ID", value: user.user_id },
         ]
         : []
 
@@ -38,14 +37,22 @@ export function SettingsPersonalPage() {
                 {!user ? (
                     <div className="mt-8 text-sm text-ui-500">Loading account...</div>
                 ) : (
-                    <div className="mt-8 divide-y divide-ui-800 rounded-xl border border-ui-800 bg-ui-900">
-                        {fields.map((field) => (
-                            <div key={field.label} className="flex flex-wrap items-center justify-between gap-2 px-5 py-4">
-                                <span className="text-sm text-ui-400">{field.label}</span>
-                                <span className="break-all text-sm font-medium text-ui-50">{field.value}</span>
-                            </div>
-                        ))}
-                    </div>
+                    <>
+                        <div className="mt-8 divide-y divide-ui-800 rounded-xl border border-ui-800 bg-ui-900">
+                            {nameFields.map((field) => (
+                                <div key={field.label} className="flex flex-wrap items-center justify-between gap-2 px-5 py-4">
+                                    <span className="text-sm text-ui-400">{field.label}</span>
+                                    <span className="break-all text-sm font-medium text-ui-50">{field.value}</span>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* The ID is long, so it gets its own card with the value below the label */}
+                        <div className="mt-6 rounded-xl border border-ui-800 bg-ui-900 px-5 py-4">
+                            <div className="text-sm text-ui-400">User ID</div>
+                            <div className="mt-1 break-all font-mono text-sm font-medium text-ui-50">{user.user_id}</div>
+                        </div>
+                    </>
                 )}
             </div>
             </div>

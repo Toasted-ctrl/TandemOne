@@ -21,10 +21,10 @@ type Tab = 'agents' | 'decision'
 
 const TABS: Record<Tab, { label: string; addLabel: string; listLabel: string; emptyLabel: string }> = {
     agents: {
-        label: 'Agents',
-        addLabel: 'Create an agent',
-        listLabel: 'Your agents',
-        emptyLabel: "You haven't created any agents yet.",
+        label: 'Chat agents',
+        addLabel: 'Create a chat agent',
+        listLabel: 'Your chat agents',
+        emptyLabel: "You haven't created any chat agents yet.",
     },
     decision: {
         label: 'Decision agents',

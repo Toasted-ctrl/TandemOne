@@ -57,9 +57,9 @@ export function ChatToolbar({
                     </svg>
                     <span className="truncate">
                         {agentName ? (
-                            <>Using <span className="font-semibold text-ui-100">{agentName}</span> settings</>
+                            <><span className="font-semibold text-ui-100">{agentName}</span> settings</>
                         ) : (
-                            "Select an agent to use its model and tools"
+                            "Uses the agent's model and tools"
                         )}
                     </span>
                 </div>

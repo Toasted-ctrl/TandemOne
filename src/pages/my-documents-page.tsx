@@ -231,7 +231,6 @@ export function MyDocumentsPage() {
                                         Upload a document file to index its contents.
                                     </p>
                                     <FileUploadButton
-                                        target="vector-store"
                                         onFileProcessed={handleFileProcessed}
                                     />
                                 </div>

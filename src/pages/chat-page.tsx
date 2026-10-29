@@ -16,32 +16,24 @@ import { streamAgent, type ModelParameters } from "../services/stream-agent"
 const GREETINGS: ((name: string) => string)[] = [
     (name) => `Hi ${name}!`,
     (name) => `Hello ${name}!`,
+    (name) => `Hey there, ${name}!`,
     (name) => `Welcome back, ${name}!`,
     (name) => `Good to see you, ${name}!`,
+    (name) => `Nice to see you, ${name}!`,
     (name) => `Hey ${name}, what's on your mind?`,
-    (name) => `Hallo ${name}!`,
-    (name) => `Hoi ${name}!`,
-    (name) => `Hola ${name}!`,
-    (name) => `Bonjour ${name}!`,
-    (name) => `Ciao ${name}!`,
-    (name) => `Olá ${name}!`,
-    (name) => `Hej ${name}!`,
-    (name) => `Moin ${name}!`,
-    (name) => `Salut ${name}!`,
-    (name) => `Kia ora ${name}!`,
-    (name) => `Aloha ${name}!`,
-    (name) => `Merhaba ${name}!`,
-    (name) => `Cześć ${name}!`,
-    (name) => `Привет, ${name}!`,
-    (name) => `Γειά σου ${name}!`,
-    (name) => `こんにちは、${name}さん!`,
-    (name) => `안녕하세요, ${name}님!`,
-    (name) => `你好, ${name}!`,
-    (name) => `नमस्ते ${name}!`,
-    (name) => `مرحبا ${name}!`,
-    (name) => `שלום ${name}!`,
-    (name) => `Jambo ${name}!`,
-    (name) => `Sawubona ${name}!`,
+    (name) => `What's up, ${name}?`,
+    (name) => `How's it going, ${name}?`,
+    (name) => `Ready when you are, ${name}!`,
+    (name) => `What shall we build, ${name}?`,
+    (name) => `What are we working on, ${name}?`,
+    (name) => `Got a question, ${name}?`,
+    (name) => `Let's get started, ${name}!`,
+    (name) => `Back for more, ${name}?`,
+    (name) => `Howdy ${name}!`,
+    (name) => `Greetings, ${name}!`,
+    (name) => `Ahoy ${name}!`,
+    (name) => `Look who's here, ${name}!`,
+    (name) => `What can I do for you, ${name}?`,
 ]
 
 function randomGreeting() {
@@ -295,6 +287,7 @@ export function ChatPage() {
             <ChatWindow
                 messages={messages}
                 loading={loading}
+                mode={mode}
                 greeting={user ? greeting(user.first_name) : undefined}
                 greetingName={user?.first_name}
                 assistantName={assistantName}

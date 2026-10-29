@@ -209,10 +209,12 @@ export function SettingsKeysPage() {
 }
 
 function ExpiryDate({ value }: { value: string }) {
+    // Read the clock once on mount so renders stay pure
+    const [now] = useState(Date.now)
     const date = new Date(value)
     if (isNaN(date.getTime())) return null
 
-    const expired = date.getTime() < Date.now()
+    const expired = date.getTime() < now
     const formatted = date.toLocaleString(undefined, {
         year: "numeric",
         month: "short",

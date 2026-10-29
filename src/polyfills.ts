@@ -33,8 +33,17 @@ if (!Object.hasOwn) {
     Object.hasOwn = (obj: object, prop: PropertyKey) => Object.prototype.hasOwnProperty.call(obj, prop)
 }
 
-if (!(Promise as any).withResolvers) {
-    (Promise as any).withResolvers = function <T>() {
+// Not in the ES2023 lib types, so describe the shape being added
+const PromiseWithResolvers = Promise as PromiseConstructor & {
+    withResolvers?: <T>() => {
+        promise: Promise<T>
+        resolve: (value: T | PromiseLike<T>) => void
+        reject: (reason?: unknown) => void
+    }
+}
+
+if (!PromiseWithResolvers.withResolvers) {
+    PromiseWithResolvers.withResolvers = function <T>() {
         let resolve!: (value: T | PromiseLike<T>) => void
         let reject!: (reason?: unknown) => void
         const promise = new Promise<T>((res, rej) => {
@@ -46,7 +55,7 @@ if (!(Promise as any).withResolvers) {
 }
 
 if (typeof ReadableStream !== 'undefined' && !(Symbol.asyncIterator in ReadableStream.prototype)) {
-    (ReadableStream.prototype as any)[Symbol.asyncIterator] = async function* () {
+    (ReadableStream.prototype as unknown as AsyncIterable<unknown>)[Symbol.asyncIterator] = async function* (this: ReadableStream) {
         const reader = this.getReader()
         try {
             while (true) {

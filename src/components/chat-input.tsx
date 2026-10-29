@@ -73,17 +73,13 @@ export function ChatInput({
 }: ChatInputProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
 
+    // Grow the textarea with its content, up to a limit
     useEffect(() => {
-        autoResize()
-    }, [input])
-
-    function autoResize() {
         const el = textareaRef.current
-        
         if (!el) return
         el.style.height = "auto"
         el.style.height = Math.min(el.scrollHeight, 200) + "px"
-    }
+    }, [input])
 
     const agentName = agents?.find((a) => a.id === agentId)?.name
     const hasTarget = mode === "agent" ? !!agentId : !!model

@@ -1,17 +1,14 @@
 import { useRef, useState } from 'react'
 import { extractFileText } from '../services/extract-file-text'
 
-export type UploadTarget = 'vector-store' | 'context'
-
 type FileUploadButtonProps = {
-    target: UploadTarget
     onFileProcessed: (file: { name: string; text: string }) => void
     disabled?: boolean
 }
 
 const ACCEPTED_TYPES = '.pdf,.docx,.txt,.md,.csv'
 
-export function FileUploadButton({ target: _target, onFileProcessed, disabled }: FileUploadButtonProps) {
+export function FileUploadButton({ onFileProcessed, disabled }: FileUploadButtonProps) {
     const inputRef = useRef<HTMLInputElement>(null)
     const [processing, setProcessing] = useState(false)
     const [error, setError] = useState<string | null>(null)

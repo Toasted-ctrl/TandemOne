@@ -66,7 +66,7 @@ export function ChatModelSelector({
                 {hasSelection ? (
                     <span className="min-w-0 truncate">{selectedModel}</span>
                 ) : (
-                    <span className="min-w-0 truncate">Select a model</span>
+                    <span className="min-w-0 truncate">Pick model</span>
                 )}
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="ml-0.5 shrink-0 opacity-40">
                     <path d="M6 9l6 6 6-6" />

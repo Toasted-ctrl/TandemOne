@@ -3,6 +3,7 @@ import Markdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { LogoMark } from "./logo"
 import { ThinkingIndicator } from "./thinking-indicator"
+import type { ChatMode } from "./chat-mode-toggle"
 
 export type ToolStatus = "running" | "success" | "error"
 
@@ -33,6 +34,7 @@ export type Message = {
 type ChatWindowProps = {
     messages: Message[]
     loading: boolean
+    mode: ChatMode
     greeting?: string
     // Highlighted within the greeting
     greetingName?: string
@@ -184,7 +186,7 @@ function ToolCallBlock({ block }: { block: ToolBlock }) {
     )
 }
 
-export function ChatWindow({ messages, loading, greeting, greetingName, assistantName, assistantDescription }: ChatWindowProps) {
+export function ChatWindow({ messages, loading, mode, greeting, greetingName, assistantName, assistantDescription }: ChatWindowProps) {
     const bottomRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -218,7 +220,7 @@ export function ChatWindow({ messages, loading, greeting, greetingName, assistan
                     </>
                 ) : (
                     <p className="text-base text-ui-400">
-                        Select a model below to start chatting.
+                        Select {mode === "agent" ? "an agent" : "a model"} below to start chatting.
                     </p>
                 )}
             </div>
