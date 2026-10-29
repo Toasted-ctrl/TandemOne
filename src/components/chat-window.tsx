@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import Markdown from "react-markdown"
 import remarkGfm from "remark-gfm"
+import rehypeHighlight from "rehype-highlight"
 import { LogoMark } from "./logo"
 import { ThinkingIndicator } from "./thinking-indicator"
 import type { ChatMode } from "./chat-mode-toggle"
@@ -186,6 +187,60 @@ function ToolCallBlock({ block }: { block: ToolBlock }) {
     )
 }
 
+// Code block with a copy button; copies the rendered text, so highlight markup is left out
+function CodeBlock({ children }: { children?: ReactNode }) {
+    const preRef = useRef<HTMLPreElement>(null)
+    const [copied, setCopied] = useState(false)
+
+    useEffect(() => {
+        if (!copied) return
+        const timer = setTimeout(() => setCopied(false), 2000)
+        return () => clearTimeout(timer)
+    }, [copied])
+
+    async function handleCopy() {
+        const text = preRef.current?.textContent ?? ""
+        try {
+            await navigator.clipboard.writeText(text.replace(/\n$/, ""))
+            setCopied(true)
+        } catch {
+            // Clipboard is unavailable (e.g. not a secure context); nothing useful to show
+        }
+    }
+
+    return (
+        <div className="group relative my-4">
+            <pre ref={preRef} className="my-0">{children}</pre>
+            <button
+                type="button"
+                onClick={handleCopy}
+                aria-label={copied ? "Copied" : "Copy code"}
+                className="absolute top-2 right-2 flex cursor-pointer items-center gap-1 rounded-md border border-ui-700/60 bg-ui-900/90 px-2 py-1 font-sans text-[11px] font-medium text-ui-400 transition hover:text-ui-100 focus:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+            >
+                {copied ? (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 6L9 17l-5-5" />
+                    </svg>
+                ) : (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                    </svg>
+                )}
+                {copied ? "Copied" : "Copy"}
+            </button>
+        </div>
+    )
+}
+
+function ChatMarkdown({ children }: { children: string }) {
+    return (
+        <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]} components={{ pre: CodeBlock }}>
+            {children}
+        </Markdown>
+    )
+}
+
 export function ChatWindow({ messages, loading, mode, greeting, greetingName, assistantName, assistantDescription }: ChatWindowProps) {
     const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -250,7 +305,7 @@ export function ChatWindow({ messages, loading, mode, greeting, greetingName, as
                                     msg.blocks.map((block, j) =>
                                         block.type === "text" ? (
                                             <div key={j} className="prose dark:prose-invert prose-sm break-words leading-relaxed text-ui-300">
-                                                <Markdown remarkPlugins={[remarkGfm]}>{block.text}</Markdown>
+                                                <ChatMarkdown>{block.text}</ChatMarkdown>
                                             </div>
                                         ) : (
                                             <ToolCallBlock key={j} block={block} />
@@ -258,7 +313,7 @@ export function ChatWindow({ messages, loading, mode, greeting, greetingName, as
                                     )
                                 ) : (
                                     <div className="prose dark:prose-invert prose-sm break-words leading-relaxed text-ui-300">
-                                        <Markdown remarkPlugins={[remarkGfm]}>{msg.content}</Markdown>
+                                        <ChatMarkdown>{msg.content}</ChatMarkdown>
                                     </div>
                                 )}
                                 {waiting && i === messages.length - 1 && <ThinkingIndicator />}

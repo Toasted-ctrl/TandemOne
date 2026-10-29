@@ -264,6 +264,82 @@ body {
     background-clip: text;
 }
 
+/* Syntax highlighting for code blocks in chat (token classes from rehype-highlight).
+   Colours come from the theme variables, so every theme gets matching highlighting. */
+.hljs-comment,
+.hljs-quote {
+    color: var(--color-ui-500);
+    font-style: italic;
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-doctag,
+.hljs-meta .hljs-keyword {
+    color: var(--color-brand-400);
+}
+.hljs-string,
+.hljs-regexp,
+.hljs-addition,
+.hljs-template-tag {
+    color: var(--color-green-400);
+}
+.hljs-number,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link {
+    color: var(--color-sky-400);
+}
+.hljs-title,
+.hljs-section,
+.hljs-selector-id,
+.hljs-selector-class {
+    color: var(--color-indigo-400);
+}
+.hljs-built_in,
+.hljs-type,
+.hljs-attr,
+.hljs-attribute,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-params {
+    color: var(--color-brand-300);
+}
+.hljs-meta,
+.hljs-name,
+.hljs-tag {
+    color: var(--color-ui-400);
+}
+.hljs-deletion {
+    color: var(--color-red-400);
+}
+.hljs-emphasis {
+    font-style: italic;
+}
+.hljs-strong {
+    font-weight: 600;
+}
+
+/* Terminal keeps to its amber palette: tokens differ by shade, not by hue */
+:root.terminal {
+    .hljs-string,
+    .hljs-regexp,
+    .hljs-addition,
+    .hljs-template-tag {
+        color: var(--color-brand-200);
+    }
+    .hljs-number,
+    .hljs-symbol,
+    .hljs-bullet,
+    .hljs-link,
+    .hljs-title,
+    .hljs-section,
+    .hljs-selector-id,
+    .hljs-selector-class {
+        color: var(--color-ui-50);
+    }
+}
+
 @utility scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: var(--color-ui-700) transparent;
