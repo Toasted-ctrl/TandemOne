@@ -18,7 +18,7 @@ A web-based AI chat frontend for [SynapseAPI](https://github.com/Toasted-ctrl/ai
 <table>
   <tr>
     <th>Chat with an agent</th>
-    <th>Chat with tools (light mode)</th>
+    <th>Chat with tools</th>
     <th>Agent playground</th>
   </tr>
   <tr>
