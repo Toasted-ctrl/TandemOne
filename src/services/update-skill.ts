@@ -9,7 +9,7 @@ export type SkillUpdatePayload = SkillPayload & {
 export async function updateSkill(scope: string, update: SkillUpdatePayload): Promise<Skill> {
     const applicationKey = import.meta.env.VITE_API_KEY
     const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/v1/skill?scope=${encodeURIComponent(scope)}`, {
+        `${import.meta.env.VITE_API_BASE_URL}/api/v1/documents/skill?scope=${encodeURIComponent(scope)}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

@@ -12,7 +12,7 @@ export async function getSkill(skillId: string, scope: string): Promise<Skill> {
     const applicationKey = import.meta.env.VITE_API_KEY
     const params = new URLSearchParams({ skill_id: skillId, scope })
     const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/v1/skill?${params}`, {
+        `${import.meta.env.VITE_API_BASE_URL}/api/v1/documents/skill?${params}`, {
             headers: {
                 'X-API-Key': applicationKey
             },
