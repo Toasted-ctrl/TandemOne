@@ -2,6 +2,8 @@
 
 A web-based AI chat frontend for [SynapseAPI](https://github.com/Toasted-ctrl/ai_api). Chat with models from multiple providers or with your own agents, give them tools (MCP servers, web search, your files, memories and skills), and manage it all from the browser.
 
+Mobile browsers are the primary target: every page is designed to work well on a phone first and scale up to larger screens.
+
 ## Features
 
 - **Multi-provider chat** — stream responses from any configured provider and model, with adjustable sampling (temperature, top-p, top-k). Only the settings the selected model supports are offered. Code blocks are syntax highlighted in colours that follow the theme, and each has a copy button.
@@ -27,6 +29,10 @@ A web-based AI chat frontend for [SynapseAPI](https://github.com/Toasted-ctrl/ai
     <td><img src="images/PLAYGROUND_CREATE.png" alt="Agent playground" width="250"></td>
   </tr>
 </table>
+
+## Mobile first
+
+A good experience in mobile browsers comes first. Layouts start from small screens and widen with Tailwind's responsive breakpoints, and long content such as code, links and IDs wraps or scrolls instead of overflowing the screen. When building or changing a page, check it at phone widths before desktop ones. Testing is currently done mainly on an iPhone 17 Pro Max, so smaller phones and Android browsers have had less coverage.
 
 ## Tech stack
 
