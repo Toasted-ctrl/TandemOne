@@ -40,6 +40,20 @@ function randomGreeting() {
     return GREETINGS[Math.floor(Math.random() * GREETINGS.length)]
 }
 
+const LAST_MODEL_KEY = "lastModel"
+
+type ModelChoice = { provider: string, model: string }
+
+// Read synchronously so chatting can start before the model list has loaded
+function getLastModel(): ModelChoice | null {
+    try {
+        const stored = JSON.parse(localStorage.getItem(LAST_MODEL_KEY) ?? "null")
+        return typeof stored?.provider === "string" && typeof stored?.model === "string" ? stored : null
+    } catch {
+        return null
+    }
+}
+
 export function ChatPage() {
     const navigate = useNavigate()
     const [user, setUser] = useState<User | null>(null)
@@ -49,8 +63,8 @@ export function ChatPage() {
     const [input, setInput] = useState("")
     const [loading, setLoading] = useState(false)
     const [mode, setMode] = useState<ChatMode>("model")
-    const [provider, setProvider] = useState("")
-    const [model, setModel] = useState("")
+    const [provider, setProvider] = useState(() => getLastModel()?.provider ?? "")
+    const [model, setModel] = useState(() => getLastModel()?.model ?? "")
     // Null until the list is first fetched
     const [agents, setAgents] = useState<AgentSummary[] | null>(null)
     const [agentId, setAgentId] = useState<string | null>(null)
@@ -79,6 +93,25 @@ export function ChatPage() {
         getProviderConfiguration().then((res) => setProviderConfigs(res.providers)).catch(console.error)
         getMcps().then((res) => setMcps(res.mcps)).catch(console.error)
     }, [])
+
+    // Drop a remembered model once we know it's no longer offered or its provider lost its API key
+    useEffect(() => {
+        if (!offerings || !provider || !model) return
+        const offered = offerings.providers[provider]?.chat_completion.includes(model)
+        const config = providerConfigs.find((p) => p.name === provider)
+        const needsKey = config?.requires_api_key && !config.api_key_configured
+        if (offered && !needsKey) return
+
+        localStorage.removeItem(LAST_MODEL_KEY)
+        setProvider("")
+        setModel("")
+    }, [offerings, providerConfigs, provider, model])
+
+    function handleModelSelect(nextProvider: string, nextModel: string) {
+        localStorage.setItem(LAST_MODEL_KEY, JSON.stringify({ provider: nextProvider, model: nextModel }))
+        setProvider(nextProvider)
+        setModel(nextModel)
+    }
 
     useEffect(() => {
         setSamplingSupport(null)
@@ -305,7 +338,7 @@ export function ChatPage() {
                 providerConfigs={providerConfigs}
                 provider={provider}
                 model={model}
-                onModelSelect={(p, m) => { setProvider(p); setModel(m) }}
+                onModelSelect={handleModelSelect}
                 agents={agents}
                 agentId={agentId}
                 onAgentSelect={setAgentId}
