@@ -13,7 +13,17 @@ export default defineConfig(({ mode }) => {
     : []
 
   return {
-    plugins: [tailwindcss(), react()],
+    plugins: [
+      tailwindcss(),
+      react(),
+      {
+        // Emits /version.json so a running app can detect a newer deploy (see src/update-check.ts)
+        name: 'emit-version',
+        generateBundle() {
+          this.emitFile({ type: 'asset', fileName: 'version.json', source: JSON.stringify({ version: appVersion }) })
+        },
+      },
+    ],
 
     define: {
       __APP_VERSION__: JSON.stringify(appVersion),
