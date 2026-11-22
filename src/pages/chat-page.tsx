@@ -11,7 +11,7 @@ import { getMcps, type Mcp } from "../services/get-mcps"
 import { getModelSampling, type ModelSamplingSupport } from "../services/get-model-sampling"
 import { getPlaygroundAgent, type Agent } from "../services/get-playground-agent"
 import { getUser, type User } from "../services/get-user"
-import { streamAgent, type ModelParameters } from "../services/stream-agent"
+import { streamAgent, StreamError, type ModelParameters } from "../services/stream-agent"
 
 const GREETINGS: ((name: string) => string)[] = [
     (name) => `Hi ${name}!`,
@@ -275,16 +275,15 @@ export function ChatPage() {
             )
         } catch (err) {
             if ((err as Error).name !== "AbortError") {
+                const error = err instanceof StreamError
+                    ? err.message
+                    // fetch rejects with a TypeError when the server can't be reached at all
+                    : "Couldn't reach the server. Check your connection and try again."
+                console.error(err)
                 setMessages((prev) => {
-                    const updated = [...prev]
-                    const last = updated[updated.length - 1]
-                    if (!last.content) {
-                        updated[updated.length - 1] = {
-                            ...last,
-                            content: `Error: ${(err as Error).message}`,
-                        }
-                    }
-                    return updated
+                    const last = prev[prev.length - 1]
+                    if (last?.role !== "assistant") return prev
+                    return [...prev.slice(0, -1), { ...last, error }]
                 })
             }
         } finally {

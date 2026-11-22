@@ -79,6 +79,36 @@ function isToolError(data: Record<string, unknown>, content: string) {
     }
 }
 
+// Thrown for failures the backend reports, so the chat can show them instead of an empty reply
+export class StreamError extends Error {
+    status?: number
+
+    constructor(message: string, status?: number) {
+        super(message)
+        this.name = "StreamError"
+        this.status = status
+    }
+}
+
+const STATUS_MESSAGES: Record<number, string> = {
+    502: "The upstream service returned an invalid response",
+    503: "The service is temporarily unavailable",
+    504: "The upstream service timed out",
+}
+
+async function errorFromResponse(response: Response) {
+    let detail: unknown
+    try {
+        detail = (await response.json())?.detail
+    } catch {
+        // Not JSON, e.g. an HTML error page from a proxy
+    }
+    const message = typeof detail === "string" && detail
+        ? detail
+        : STATUS_MESSAGES[response.status] ?? "Something went wrong on the server"
+    return new StreamError(`${message} (${response.status})`, response.status)
+}
+
 export async function streamAgent(
     request: StreamRequest,
     callbacks: StreamCallbacks,
@@ -100,9 +130,7 @@ export async function streamAgent(
         },
     )
 
-    if (!response.ok) {
-        throw new Error(`Stream request failed: ${response.status}`)
-    }
+    if (!response.ok) throw await errorFromResponse(response)
 
     const reader = response.body?.getReader()
     if (!reader) throw new Error("No response body")
@@ -128,38 +156,46 @@ export async function streamAgent(
             const payload = line.slice(6)
             if (payload === "[DONE]") return
 
+            let parsed
             try {
-                const parsed = JSON.parse(payload)
-                if (parsed.type === "message" && parsed.data) {
-                    if (parsed.data.content) callbacks.onChunk(parsed.data.content)
-                    const tid = parsed.data.metadata?.thread_id
-                    if (tid) callbacks.onThreadId?.(tid)
-                } else if (parsed.type === "tool_call" && parsed.data) {
-                    const { id, name, index = 0 } = parsed.data
-                    const args = typeof parsed.data.args === "string"
-                        ? parsed.data.args
-                        : JSON.stringify(parsed.data.args ?? "")
-                    if (id && !seenCallIds.has(id)) {
-                        seenCallIds.add(id)
-                        callIdsByIndex.set(index, id)
-                        callbacks.onToolCall?.(id, name ?? "Tool", args)
-                    } else {
-                        const callId = id ?? callIdsByIndex.get(index)
-                        if (callId && args) callbacks.onToolCallArgs?.(callId, args)
-                    }
-                } else if (parsed.type === "tool_result" && parsed.data) {
-                    const content = typeof parsed.data.content === "string"
-                        ? parsed.data.content
-                        : JSON.stringify(parsed.data.content ?? "", null, 2)
-                    callbacks.onToolResult?.(
-                        parsed.data.tool_call_id ?? undefined,
-                        parsed.data.name ?? "Tool",
-                        content,
-                        isToolError(parsed.data, content),
-                    )
-                }
+                parsed = JSON.parse(payload)
             } catch {
-                // skip unparseable lines
+                continue // skip unparseable lines
+            }
+
+            // Headers are already sent once streaming starts, so the backend reports failures as a final event
+            if (parsed?.type === "error") {
+                const detail = parsed.data?.detail
+                throw new StreamError(typeof detail === "string" && detail ? detail : "The response failed unexpectedly")
+            }
+
+            if (parsed.type === "message" && parsed.data) {
+                if (parsed.data.content) callbacks.onChunk(parsed.data.content)
+                const tid = parsed.data.metadata?.thread_id
+                if (tid) callbacks.onThreadId?.(tid)
+            } else if (parsed.type === "tool_call" && parsed.data) {
+                const { id, name, index = 0 } = parsed.data
+                const args = typeof parsed.data.args === "string"
+                    ? parsed.data.args
+                    : JSON.stringify(parsed.data.args ?? "")
+                if (id && !seenCallIds.has(id)) {
+                    seenCallIds.add(id)
+                    callIdsByIndex.set(index, id)
+                    callbacks.onToolCall?.(id, name ?? "Tool", args)
+                } else {
+                    const callId = id ?? callIdsByIndex.get(index)
+                    if (callId && args) callbacks.onToolCallArgs?.(callId, args)
+                }
+            } else if (parsed.type === "tool_result" && parsed.data) {
+                const content = typeof parsed.data.content === "string"
+                    ? parsed.data.content
+                    : JSON.stringify(parsed.data.content ?? "", null, 2)
+                callbacks.onToolResult?.(
+                    parsed.data.tool_call_id ?? undefined,
+                    parsed.data.name ?? "Tool",
+                    content,
+                    isToolError(parsed.data, content),
+                )
             }
         }
     }

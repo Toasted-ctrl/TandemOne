@@ -30,6 +30,8 @@ export type Message = {
     blocks?: ContentBlock[]
     // Model (or, later, agent) name that produced an assistant message
     assistantName?: string
+    // Set when the reply failed, shown after whatever was received before the failure
+    error?: string
 }
 
 type ChatWindowProps = {
@@ -314,6 +316,11 @@ export function ChatWindow({ messages, loading, mode, greeting, greetingName, as
                                 ) : (
                                     <div className="prose dark:prose-invert prose-sm break-words leading-relaxed text-ui-300">
                                         <ChatMarkdown>{msg.content}</ChatMarkdown>
+                                    </div>
+                                )}
+                                {msg.error && (
+                                    <div role="alert" className="mt-2 rounded-md border border-red-400/30 border-l-2 border-l-red-400 bg-red-400/10 px-3 py-2 text-sm text-red-400">
+                                        {msg.error}
                                     </div>
                                 )}
                                 {waiting && i === messages.length - 1 && <ThinkingIndicator />}
