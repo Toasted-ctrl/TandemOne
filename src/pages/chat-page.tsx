@@ -12,6 +12,7 @@ import { getModelSampling, type ModelSamplingSupport } from "../services/get-mod
 import { getPlaygroundAgent, type Agent } from "../services/get-playground-agent"
 import { getUser, type User } from "../services/get-user"
 import { streamAgent, StreamError, type ModelParameters } from "../services/stream-agent"
+import { modelDisplayName } from "../utils/model-display-name"
 
 const GREETINGS: ((name: string) => string)[] = [
     (name) => `Hi ${name}!`,
@@ -162,7 +163,7 @@ export function ChatPage() {
     }
 
     const agentName = agents?.find((a) => a.id === agentId)?.name
-    const assistantName = mode === "agent" ? agentName : model || undefined
+    const assistantName = mode === "agent" ? agentName : model ? modelDisplayName(model) : undefined
     const assistantDescription = mode === "agent" && agentDetails?.id === agentId ? agentDetails.description : null
 
     async function handleSend() {

@@ -4,6 +4,7 @@ import { getDecisionAgent, type DecisionAgent, type DecisionAgentPayload, type D
 import type { ProvidersOffering } from '../services/get-models'
 import type { ProviderConfiguration } from '../services/get-provider-configuration'
 import { updateDecisionAgent } from '../services/update-decision-agent'
+import { modelDisplayName } from '../utils/model-display-name'
 
 type DecisionAgentDetailsDialogProps = {
     agentId: string
@@ -182,9 +183,9 @@ export function DecisionAgentDetailsDialog({ agentId, offerings, providerConfigs
 
                             <section className="space-y-2">
                                 <SectionHeading>Model</SectionHeading>
-                                <p className="text-sm text-ui-300">
+                                <p className="text-sm text-ui-300" title={`${agent.model.provider} / ${agent.model.name}`}>
                                     <span className="text-ui-500">{agent.model.provider} / </span>
-                                    {agent.model.name}
+                                    {modelDisplayName(agent.model.name)}
                                 </p>
                             </section>
 

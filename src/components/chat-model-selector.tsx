@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import type { ModelCapability, ProvidersOffering } from "../services/get-models"
 import type { ProviderConfiguration } from "../services/get-provider-configuration"
+import { modelDisplayName } from "../utils/model-display-name"
 
 type ChatModelSelectorProps = {
     offerings: ProvidersOffering
@@ -64,7 +65,7 @@ export function ChatModelSelector({
                     <path d="M12 2a4 4 0 0 0-4 4v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4Z" />
                 </svg>
                 {hasSelection ? (
-                    <span className="min-w-0 truncate">{selectedModel}</span>
+                    <span className="min-w-0 truncate">{modelDisplayName(selectedModel)}</span>
                 ) : (
                     <span className="min-w-0 truncate">Pick model</span>
                 )}
@@ -100,6 +101,7 @@ export function ChatModelSelector({
                                             <button
                                                 key={m}
                                                 type="button"
+                                                title={m}
                                                 onClick={() => {
                                                     onSelect(providerName, m)
                                                     setOpen(false)
@@ -117,7 +119,7 @@ export function ChatModelSelector({
                                                         <path d="M20 6L9 17l-5-5" />
                                                     </svg>
                                                 )}
-                                                <span className={selected ? "" : "pl-5"}>{m}</span>
+                                                <span className={selected ? "" : "pl-5"}>{modelDisplayName(m)}</span>
                                             </button>
                                         )
                                     })
