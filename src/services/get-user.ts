@@ -2,6 +2,13 @@ export type User = {
     user_id: string
     first_name: string
     last_name: string
+    email: string
+    is_admin: boolean
+    is_super_admin: boolean
+}
+
+export function isAdmin(user: User): boolean {
+    return user.is_admin || user.is_super_admin
 }
 
 

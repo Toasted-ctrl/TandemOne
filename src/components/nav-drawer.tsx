@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { getRoot } from "../services/get-root"
+import { getUser, isAdmin } from "../services/get-user"
 import { Wordmark } from "./logo"
 
 type NavDrawerProps = {
@@ -73,6 +74,22 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     },
 ]
 
+// Only shown to admins (is_admin or is_super_admin)
+const manageGroup: { label: string; items: NavItem[] } = {
+    label: "Manage",
+    items: [
+        {
+            to: "/manage/tools",
+            label: "Tools",
+            icon: (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+                </svg>
+            ),
+        },
+    ],
+}
+
 // Kept apart from the groups, at the bottom of the drawer
 const settingsItem: NavItem = {
     to: "/settings",
@@ -106,12 +123,18 @@ function NavLink({ item, onClick }: { item: NavItem; onClick: () => void }) {
 
 export function NavDrawer({ open, onClose }: NavDrawerProps) {
     const [apiVersion, setApiVersion] = useState<string | null>(null)
+    const [showManage, setShowManage] = useState(false)
 
     useEffect(() => {
         getRoot()
             .then((data) => setApiVersion(data.version))
             .catch(() => setApiVersion(null))
+        getUser()
+            .then((user) => setShowManage(isAdmin(user)))
+            .catch(() => setShowManage(false))
     }, [])
+
+    const groups = showManage ? [...navGroups, manageGroup] : navGroups
 
     useEffect(() => {
         function handleKey(e: KeyboardEvent) {
@@ -146,7 +169,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
                 </div>
 
                 <div className="flex-1 space-y-4 overflow-y-auto px-3 py-3">
-                    {navGroups.map((group) => (
+                    {groups.map((group) => (
                         <div key={group.label}>
                             <div className="px-3 pt-1 pb-1.5 text-[11px] font-medium tracking-wide text-ui-500 uppercase">
                                 {group.label}
