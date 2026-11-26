@@ -55,6 +55,20 @@ function getLastModel(): ModelChoice | null {
     }
 }
 
+// Only true once the lists have loaded and rule the model out, so a remembered model is usable before then
+function isModelUnavailable(
+    offerings: ProvidersOffering | null,
+    providerConfigs: ProviderConfiguration[],
+    provider: string,
+    model: string,
+): boolean {
+    if (!offerings || !provider || !model) return false
+    const offered = offerings.providers[provider]?.chat_completion.includes(model)
+    const config = providerConfigs.find((p) => p.name === provider)
+    const needsKey = config?.requires_api_key && !config.api_key_configured
+    return !offered || !!needsKey
+}
+
 export function ChatPage() {
     const navigate = useNavigate()
     const [user, setUser] = useState<User | null>(null)
@@ -64,8 +78,8 @@ export function ChatPage() {
     const [input, setInput] = useState("")
     const [loading, setLoading] = useState(false)
     const [mode, setMode] = useState<ChatMode>("model")
-    const [provider, setProvider] = useState(() => getLastModel()?.provider ?? "")
-    const [model, setModel] = useState(() => getLastModel()?.model ?? "")
+    const [chosenProvider, setChosenProvider] = useState(() => getLastModel()?.provider ?? "")
+    const [chosenModel, setChosenModel] = useState(() => getLastModel()?.model ?? "")
     // Null until the list is first fetched
     const [agents, setAgents] = useState<AgentSummary[] | null>(null)
     const [agentId, setAgentId] = useState<string | null>(null)
@@ -78,7 +92,8 @@ export function ChatPage() {
     const [userVsSkills, setUserVsSkills] = useState(false)
     const [webSearch, setWebSearch] = useState(false)
     const [parameters, setParameters] = useState<ModelParameters>({ temperature: null, top_p: null, top_k: null })
-    const [samplingSupport, setSamplingSupport] = useState<ModelSamplingSupport | null>(null)
+    // Tagged with the model it was fetched for, so a result for a previous model is never shown
+    const [sampling, setSampling] = useState<ModelChoice & { support: ModelSamplingSupport } | null>(null)
     const [threadId, setThreadId] = useState<string | null>(null)
     const [greeting, setGreeting] = useState(randomGreeting)
     const abortRef = useRef<AbortController | null>(null)
@@ -95,34 +110,30 @@ export function ChatPage() {
         getMcps().then((res) => setMcps(res.mcps)).catch(console.error)
     }, [])
 
-    // Drop a remembered model once we know it's no longer offered or its provider lost its API key
-    useEffect(() => {
-        if (!offerings || !provider || !model) return
-        const offered = offerings.providers[provider]?.chat_completion.includes(model)
-        const config = providerConfigs.find((p) => p.name === provider)
-        const needsKey = config?.requires_api_key && !config.api_key_configured
-        if (offered && !needsKey) return
+    // Ignore a remembered model once we know it's no longer offered or its provider lost its API key
+    const chosenUnavailable = isModelUnavailable(offerings, providerConfigs, chosenProvider, chosenModel)
+    const provider = chosenUnavailable ? "" : chosenProvider
+    const model = chosenUnavailable ? "" : chosenModel
+    const samplingSupport = sampling?.provider === provider && sampling.model === model ? sampling.support : null
 
-        localStorage.removeItem(LAST_MODEL_KEY)
-        setProvider("")
-        setModel("")
-    }, [offerings, providerConfigs, provider, model])
+    useEffect(() => {
+        if (chosenUnavailable) localStorage.removeItem(LAST_MODEL_KEY)
+    }, [chosenUnavailable])
 
     function handleModelSelect(nextProvider: string, nextModel: string) {
         localStorage.setItem(LAST_MODEL_KEY, JSON.stringify({ provider: nextProvider, model: nextModel }))
-        setProvider(nextProvider)
-        setModel(nextModel)
+        setChosenProvider(nextProvider)
+        setChosenModel(nextModel)
     }
 
     useEffect(() => {
-        setSamplingSupport(null)
         if (!provider || !model) return
 
         let cancelled = false
         getModelSampling(provider, model)
             .then((res) => {
                 if (cancelled) return
-                setSamplingSupport(res.sampling)
+                setSampling({ provider, model, support: res.sampling })
                 // Drop values the new model can't accept so they aren't sent with the request
                 setParameters((prev) => ({
                     temperature: res.sampling.temperature ? prev.temperature : null,
