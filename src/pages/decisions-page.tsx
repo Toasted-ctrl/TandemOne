@@ -7,6 +7,7 @@ import { getAgents, type AgentSummary } from '../services/get-agents'
 import { getDecisionAgent, type DecisionAgent } from '../services/get-decision-agent'
 import { getUser } from '../services/get-user'
 import { runDecision, type DecisionAnswer, type DecisionResult } from '../services/run-decision'
+import { modelDisplayName } from '../utils/model-display-name'
 
 const inputClassName = 'mt-1.5 w-full resize-y rounded-lg border border-ui-700 bg-ui-800 px-3 py-2 text-sm text-ui-50 placeholder-ui-500 outline-none focus:border-ui-500 focus:ring-1 focus:ring-ui-500'
 
@@ -241,8 +242,8 @@ export function DecisionsPage() {
                                         {currentAgent.description && (
                                             <p className="whitespace-pre-wrap text-sm text-ui-300">{currentAgent.description}</p>
                                         )}
-                                        <p className="text-xs text-ui-500">
-                                            {currentAgent.model.provider} / {currentAgent.model.name}
+                                        <p className="text-xs text-ui-500" title={`${currentAgent.model.provider} / ${currentAgent.model.name}`}>
+                                            {currentAgent.model.provider} / {modelDisplayName(currentAgent.model.name)}
                                         </p>
                                     </div>
                                     {/* Keyed so switching agents starts with empty inputs for the new state shape */}

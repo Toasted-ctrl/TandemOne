@@ -5,6 +5,7 @@ import type { Mcp } from '../services/get-mcps'
 import type { ProvidersOffering } from '../services/get-models'
 import type { ProviderConfiguration } from '../services/get-provider-configuration'
 import { updatePlaygroundAgent } from '../services/update-playground-agent'
+import { modelDisplayName } from '../utils/model-display-name'
 
 type AgentDetailsDialogProps = {
     agentId: string
@@ -191,9 +192,9 @@ export function AgentDetailsDialog({ agentId, mcps, offerings, providerConfigs, 
 
                             <section className="space-y-2">
                                 <SectionHeading>Model</SectionHeading>
-                                <p className="text-sm text-ui-300">
+                                <p className="text-sm text-ui-300" title={`${agent.model.provider} / ${agent.model.name}`}>
                                     <span className="text-ui-500">{agent.model.provider} / </span>
-                                    {agent.model.name}
+                                    {modelDisplayName(agent.model.name)}
                                 </p>
                             </section>
 

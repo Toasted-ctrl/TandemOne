@@ -5,6 +5,7 @@ import { AgentForm } from '../components/agent-form'
 import { AppHeader } from '../components/app-header'
 import { DecisionAgentDetailsDialog } from '../components/decision-agent-details-dialog'
 import { DecisionAgentForm } from '../components/decision-agent-form'
+import { ShareAgentDialog } from '../components/share-agent-dialog'
 import { createDecisionAgent } from '../services/create-decision-agent'
 import { createPlaygroundAgent } from '../services/create-playground-agent'
 import { deleteDecisionAgent } from '../services/delete-decision-agent'
@@ -55,10 +56,11 @@ type AgentListProps = {
     loading: boolean
     deletingIds: Set<string>
     onSelect: (agentId: string) => void
+    onShare: (agent: AgentSummary) => void
     onDelete: (agentId: string) => void
 }
 
-function AgentList({ heading, emptyLabel, agents, loading, deletingIds, onSelect, onDelete }: AgentListProps) {
+function AgentList({ heading, emptyLabel, agents, loading, deletingIds, onSelect, onShare, onDelete }: AgentListProps) {
     return (
         <div className="mt-6 space-y-2">
             <h2 className="text-sm font-medium text-ui-400">{heading}</h2>
@@ -81,6 +83,17 @@ function AgentList({ heading, emptyLabel, agents, loading, deletingIds, onSelect
                                 <p className="truncate text-sm text-ui-50 group-hover:text-brand-300">{agent.name}</p>
                                 <p className="truncate text-xs text-ui-600" title={agent.id}>{agent.id.length > 18 ? `${agent.id.slice(0, 18)}...` : agent.id}</p>
                             </div>
+                        </button>
+                        <button
+                            onClick={() => onShare(agent)}
+                            aria-label={`Share ${agent.name}`}
+                            className="shrink-0 cursor-pointer rounded-md p-1.5 text-ui-500 transition hover:bg-ui-800 hover:text-brand-300"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M19 8v6M22 11h-6" />
+                            </svg>
                         </button>
                         <button
                             onClick={() => onDelete(agent.id)}
@@ -128,6 +141,9 @@ export function PlaygroundPage() {
     const handleAgentUpdated = useCallback((updated: Agent) => {
         setAgents(prev => prev.map(a => (a.id === updated.id ? { ...a, name: updated.name } : a)))
     }, [])
+
+    const [sharingAgent, setSharingAgent] = useState<AgentSummary | null>(null)
+    const closeShareDialog = useCallback(() => setSharingAgent(null), [])
 
     const [decisionAgents, setDecisionAgents] = useState<AgentSummary[]>([])
     const [decisionAgentsLoading, setDecisionAgentsLoading] = useState(true)
@@ -184,6 +200,8 @@ export function PlaygroundPage() {
     }
 
     async function handleDelete(agentId: string, agentType: Tab) {
+        const agentName = (agentType === 'decision' ? decisionAgents : agents).find(a => a.id === agentId)?.name ?? 'this agent'
+        if (!window.confirm(`Delete "${agentName}"? This can't be undone.`)) return
         setDeletingIds(prev => new Set(prev).add(agentId))
         try {
             if (agentType === 'decision') {
@@ -278,6 +296,7 @@ export function PlaygroundPage() {
                             loading={agentsLoading}
                             deletingIds={deletingIds}
                             onSelect={setSelectedAgentId}
+                            onShare={setSharingAgent}
                             onDelete={agentId => handleDelete(agentId, 'agents')}
                         />
                     ) : (
@@ -288,6 +307,7 @@ export function PlaygroundPage() {
                             loading={decisionAgentsLoading}
                             deletingIds={deletingIds}
                             onSelect={setSelectedDecisionAgentId}
+                            onShare={setSharingAgent}
                             onDelete={agentId => handleDelete(agentId, 'decision')}
                         />
                     )}
@@ -314,6 +334,15 @@ export function PlaygroundPage() {
                     providerConfigs={providerConfigs}
                     onClose={closeDecisionAgentDetails}
                     onUpdated={handleDecisionAgentUpdated}
+                />
+            )}
+
+            {sharingAgent && (
+                <ShareAgentDialog
+                    key={sharingAgent.id}
+                    agentId={sharingAgent.id}
+                    agentName={sharingAgent.name}
+                    onClose={closeShareDialog}
                 />
             )}
         </div>
