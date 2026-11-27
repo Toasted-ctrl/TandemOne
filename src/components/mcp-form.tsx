@@ -1,5 +1,5 @@
 import { useId, useState } from 'react'
-import type { McpPayload, McpTransport } from '../services/create-mcp'
+import type { McpPayload, McpTransport } from '../services/create-admin-mcp'
 
 type McpFormProps = {
     onSave: (mcp: McpPayload) => Promise<boolean>

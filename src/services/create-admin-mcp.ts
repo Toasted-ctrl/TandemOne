@@ -6,10 +6,10 @@ export type McpPayload = {
     url: string
 }
 
-export async function createMcp(mcp: McpPayload): Promise<void> {
+export async function createAdminMcp(mcp: McpPayload): Promise<void> {
     const applicationKey = import.meta.env.VITE_API_KEY
     const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/v1/tools/mcp`, {
+        `${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/tools/mcp`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

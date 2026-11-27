@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AppHeader } from '../components/app-header'
 import { McpForm } from '../components/mcp-form'
-import { createMcp, type McpPayload } from '../services/create-mcp'
-import { deleteMcp } from '../services/delete-mcp'
+import { createAdminMcp, type McpPayload } from '../services/create-admin-mcp'
+import { deleteAdminMcp } from '../services/delete-admin-mcp'
 import { getMcps, type Mcp } from '../services/get-mcps'
 import { getUser, isAdmin } from '../services/get-user'
 
@@ -51,7 +51,7 @@ export function ManageToolsPage() {
     async function handleSave(payload: McpPayload): Promise<boolean> {
         setSaveError(null)
         try {
-            await createMcp(payload)
+            await createAdminMcp(payload)
         } catch (err) {
             setSaveError(err instanceof Error ? err.message : 'Save failed')
             return false
@@ -67,7 +67,7 @@ export function ManageToolsPage() {
         setDeleteError(null)
         setDeletingIds(prev => new Set(prev).add(mcp.id))
         try {
-            await deleteMcp(mcp.id)
+            await deleteAdminMcp(mcp.id)
             setMcps(prev => prev.filter(m => m.id !== mcp.id))
         } catch (err) {
             // Leave the item in place so the user can retry

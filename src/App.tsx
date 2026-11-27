@@ -11,6 +11,7 @@ import { PlaygroundPage } from './pages/playground-page'
 import { TermsPage } from './pages/terms-page'
 import { PrivacyPage } from './pages/privacy-page'
 import { ManageToolsPage } from './pages/manage-tools-page'
+import { ManageModelsPage } from './pages/manage-models-page'
 import { getUser } from './services/get-user'
 
 function AuthRedirect() {
@@ -44,6 +45,7 @@ function App() {
                 <Route path="/playground" element={<PlaygroundPage />} />
                 <Route path="/manage" element={<Navigate to="/manage/tools" replace />} />
                 <Route path="/manage/tools" element={<ManageToolsPage />} />
+                <Route path="/manage/models" element={<ManageModelsPage />} />
             </Routes>
         </BrowserRouter>
     )
