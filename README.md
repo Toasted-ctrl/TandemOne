@@ -14,7 +14,11 @@ Mobile browsers are the primary target: every page is designed to work well on a
 - **Web search** — opt-in per conversation; off by default and clearly highlighted when enabled.
 - **My documents** — upload files (PDF, DOCX, TXT, MD, CSV) or save text memories to a personal vector store for retrieval.
 - **Skills** — write reusable instructions for your models and agents. Skill descriptions are indexed so they can be discovered through vector search, and instructions can be edited in place.
-- **Manage (admins only)** — admins get an extra Manage section in the navigation. Its Tools page lists the MCP servers available to agents, adds new ones (name, transport and URL) and deletes them after a confirmation. Streamable HTTP servers are added by their base URL, without `/mcp` at the end. The section is hidden from other users, and the API checks admin rights itself.
+- **Manage (admins only)** — admins get an extra Manage section in the navigation, with two pages:
+  - **Models** — choose which models users can pick, in two tabs: Chat completion (for chat and chat agents) and System One (for decision agents). Admins add a model by its full name, exactly as the provider expects it, and delete one after a confirmation. Models are listed alphabetically by their short name.
+  - **Tools** — list the MCP servers available to agents, add new ones (name, transport and URL) and delete them after a confirmation. Streamable HTTP servers are added by their base URL, without `/mcp` at the end.
+
+  The section is hidden from other users, and the API checks admin rights itself.
 - **Settings** — view your account details, manage provider API keys, and pick a light, dark, funky, terminal or system theme.
 - **Google login** — authentication via Google OAuth.
 
@@ -110,6 +114,6 @@ src/
 ├── components/      UI components (chat window and toolbar, selectors, agent, skill and MCP forms, dialogs)
 ├── features/auth/   Google OAuth login
 ├── pages/           Route pages (chat, decisions, login, manage, my documents, playground, settings, privacy, terms)
-├── services/        API clients, one per endpoint (streaming chat, agents, skills, documents, providers, user)
+├── services/        API clients, one per endpoint (streaming chat, agents, skills, documents, providers, user, admin)
 └── theme.ts         Light / dark / funky / terminal / system theme handling
 ```
