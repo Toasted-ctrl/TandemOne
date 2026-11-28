@@ -14,8 +14,9 @@ Mobile browsers are the primary target: every page is designed to work well on a
 - **Web search** — opt-in per conversation; off by default and clearly highlighted when enabled.
 - **My documents** — upload files (PDF, DOCX, TXT, MD, CSV) or save text memories to a personal vector store for retrieval.
 - **Skills** — write reusable instructions for your models and agents. Skill descriptions are indexed so they can be discovered through vector search, and instructions can be edited in place.
-- **Manage (admins only)** — admins get an extra Manage section in the navigation, with two pages:
+- **Manage (admins only)** — admins get an extra Manage section in the navigation, with three pages:
   - **Models** — choose which models users can pick, in two tabs: Chat completion (for chat and chat agents) and System One (for decision agents). Admins add a model by its full name, exactly as the provider expects it, and delete one after a confirmation. Models are listed alphabetically by their short name.
+  - **Providers** — list the configured providers with their base URL, connection type, hosting and whether they need an API key. Admins add a provider (name, base URL, connection type, internal or external, API key required or not, and an optional MAC address) and delete one after a confirmation.
   - **Tools** — list the MCP servers available to agents, add new ones (name, transport and URL) and delete them after a confirmation. Streamable HTTP servers are added by their base URL, without `/mcp` at the end.
 
   The section is hidden from other users, and the API checks admin rights itself.
